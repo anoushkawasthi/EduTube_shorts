@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'dart:io';
 import 'package:edutube_shorts/models/video.dart';
 
 /// VideoPlayerItem widget handles the lifecycle of VideoPlayerController
@@ -23,27 +25,42 @@ class VideoPlayerItem extends StatefulWidget {
 class _VideoPlayerItemState extends State<VideoPlayerItem> {
   late VideoPlayerController _controller;
   late Future<void> _initializeVideoPlayer;
+  bool _userPausedManually = false; // Track if user explicitly paused
 
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.video.url));
 
-    _initializeVideoPlayer = _controller
-        .initialize()
-        .then((_) {
-          if (mounted) {
-            setState(() {});
-            widget.onInitialized?.call();
-            // Auto-play when visible
-            if (widget.isVisible) {
-              _controller.play();
-            }
-          }
-        })
-        .catchError((error) {
-          debugPrint('Error initializing video: $error');
-        });
+    // Initialize video using cache manager
+    _initializeVideoPlayer = _initializeWithCache();
+  }
+
+  /// Initialize video from cache or download it
+  Future<void> _initializeWithCache() async {
+    try {
+      // Get the video file from cache (or download if not cached)
+      final File videoFile = await DefaultCacheManager().getSingleFile(
+        widget.video.url,
+      );
+
+      // Initialize controller with the cached file
+      _controller = VideoPlayerController.file(videoFile);
+
+      await _controller.initialize();
+
+      if (mounted) {
+        setState(() {});
+        widget.onInitialized?.call();
+        // Auto-play when visible (Instagram-style)
+        if (widget.isVisible) {
+          _controller.play();
+          _userPausedManually = false;
+        }
+      }
+    } catch (error) {
+      debugPrint('Error initializing video from cache: $error');
+      rethrow;
+    }
   }
 
   @override
@@ -52,10 +69,20 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
 
     // Handle visibility changes
     if (widget.isVisible && !oldWidget.isVisible) {
-      // Became visible: resume playback
-      _controller.play();
+      // Became visible: resume playback (unless user manually paused)
+      debugPrint('🎬 Video ${widget.video.id} became visible');
+      if (!_userPausedManually) {
+        // Small delay to ensure video is ready
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (mounted && !_userPausedManually) {
+            _controller.play();
+            debugPrint('▶️ Auto-playing ${widget.video.id}');
+          }
+        });
+      }
     } else if (!widget.isVisible && oldWidget.isVisible) {
       // Became hidden: pause playback to save resources
+      debugPrint('⏸️ Video ${widget.video.id} became hidden');
       _controller.pause();
     }
   }
@@ -76,57 +103,61 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
             onTap: _togglePlayPause,
             child: Container(
               color: Colors.black,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Center(
-                    child: AspectRatio(
-                      aspectRatio: _controller.value.aspectRatio,
-                      child: VideoPlayer(_controller),
-                    ),
-                  ),
-                  // Play/pause overlay
-                  if (!_controller.value.isPlaying)
-                    Center(
-                      child: Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.play_arrow,
-                          color: Colors.black,
-                          size: 32,
-                        ),
-                      ),
-                    ),
-                  // Video metadata overlay
-                  Positioned(
-                    bottom: 20,
-                    left: 16,
-                    right: 16,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
+              child: SizedBox.expand(
+                child: FittedBox(
+                  fit: BoxFit.cover,
+                  child: SizedBox(
+                    width: _controller.value.size.width,
+                    height: _controller.value.size.height,
+                    child: Stack(
+                      fit: StackFit.expand,
                       children: [
-                        Text(
-                          widget.video.title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                        VideoPlayer(_controller),
+                        // Play/pause overlay - only show when user manually paused
+                        if (!_controller.value.isPlaying && _userPausedManually)
+                          Center(
+                            child: Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.7),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.play_arrow,
+                                color: Colors.black,
+                                size: 32,
+                              ),
+                            ),
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                        // Video metadata overlay
+                        Positioned(
+                          bottom: 20,
+                          left: 16,
+                          right: 16,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                widget.video.title,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 8),
+                              VideoProgressBar(_controller),
+                            ],
+                          ),
                         ),
-                        const SizedBox(height: 8),
-                        VideoProgressBar(_controller),
                       ],
                     ),
                   ),
-                ],
+                ),
               ),
             ),
           );
@@ -171,8 +202,10 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
   void _togglePlayPause() {
     if (_controller.value.isPlaying) {
       _controller.pause();
+      _userPausedManually = true; // User explicitly paused
     } else {
       _controller.play();
+      _userPausedManually = false; // User resumed, not manual pause anymore
     }
     setState(() {});
   }

@@ -43,6 +43,9 @@ dependencies:
   
   # SVG support for logo
   flutter_svg: ^2.0.0
+  
+  # Video caching and prefetching
+  flutter_cache_manager: ^3.3.1
 
 dev_dependencies:
   flutter_test:

@@ -17,7 +17,7 @@ class CourseData {
               id: 'NA_V1',
               title: 'Bisection Method Introduction',
               url:
-                  'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ElFuerte.mp4',
+                  'https://drive.google.com/uc?id=1Ct269y33DGT1U_CzTaKvx81tJmNRjOvV&export=download',
               duration: const Duration(minutes: 8, seconds: 45),
               description:
                   'Learn how the bisection method works for finding roots',
@@ -26,7 +26,7 @@ class CourseData {
               id: 'NA_V2',
               title: 'Newton-Raphson Method',
               url:
-                  'https://commondatastorage.googleapis.com/gtv-videos-library/sample/BigBuckBunny.mp4',
+                  'https://drive.google.com/uc?id=1Ygzt2rWCp-bGjNLS5og2rMcIgc9kJDzX&export=download',
               duration: const Duration(minutes: 12, seconds: 30),
               description: 'Understand the faster Newton-Raphson approach',
             ),
@@ -34,7 +34,7 @@ class CourseData {
               id: 'NA_V3',
               title: 'Secant Method Explained',
               url:
-                  'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerBlazes.mp4',
+                  'https://drive.google.com/uc?id=1v1VZxcJY0SoMW5I2sbIgrUBWGHDIs2i0&export=download',
               duration: const Duration(minutes: 10, seconds: 15),
               description: 'Explore the secant method without derivatives',
             ),
@@ -48,7 +48,7 @@ class CourseData {
               id: 'NA_V4',
               title: 'Gaussian Elimination Basics',
               url:
-                  'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerEscapes.mp4',
+                  'https://drive.google.com/uc?id=1msncCB63W-zqTF5wkVnEjvYnC9rCAQKv&export=download',
               duration: const Duration(minutes: 15),
               description: 'Foundation of solving linear systems',
             ),
@@ -56,7 +56,7 @@ class CourseData {
               id: 'NA_V5',
               title: 'LU Decomposition',
               url:
-                  'https://commondatastorage.googleapis.com/gtv-videos-library/sample/BigBuckBunny.mp4',
+                  'https://drive.google.com/uc?id=1Ct269y33DGT1U_CzTaKvx81tJmNRjOvV&export=download',
               duration: const Duration(minutes: 14, seconds: 20),
               description: 'Matrix factorization for efficient solutions',
             ),
@@ -70,7 +70,7 @@ class CourseData {
               id: 'NA_V6',
               title: 'Lagrange Interpolation',
               url:
-                  'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ElFuerte.mp4',
+                  'https://drive.google.com/uc?id=1Ygzt2rWCp-bGjNLS5og2rMcIgc9kJDzX&export=download',
               duration: const Duration(minutes: 11, seconds: 50),
               description: 'Polynomial interpolation using Lagrange basis',
             ),
@@ -78,7 +78,7 @@ class CourseData {
               id: 'NA_V7',
               title: 'Spline Interpolation',
               url:
-                  'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerBlazes.mp4',
+                  'https://drive.google.com/uc?id=1v1VZxcJY0SoMW5I2sbIgrUBWGHDIs2i0&export=download',
               duration: const Duration(minutes: 13, seconds: 45),
               description: 'Smooth curve fitting with splines',
             ),
@@ -86,7 +86,7 @@ class CourseData {
               id: 'NA_V8',
               title: 'Newton Forward Differences',
               url:
-                  'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerEscapes.mp4',
+                  'https://drive.google.com/uc?id=1msncCB63W-zqTF5wkVnEjvYnC9rCAQKv&export=download',
               duration: const Duration(minutes: 9, seconds: 30),
               description: 'Efficient polynomial evaluation',
             ),
@@ -107,7 +107,7 @@ class CourseData {
               id: 'DS_V1',
               title: 'Stack Implementation',
               url:
-                  'https://commondatastorage.googleapis.com/gtv-videos-library/sample/BigBuckBunny.mp4',
+                  'https://drive.google.com/uc?id=1Ct269y33DGT1U_CzTaKvx81tJmNRjOvV&export=download',
               duration: const Duration(minutes: 10),
               description: 'LIFO data structure essentials',
             ),
@@ -115,7 +115,7 @@ class CourseData {
               id: 'DS_V2',
               title: 'Queue Variants',
               url:
-                  'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ElFuerte.mp4',
+                  'https://drive.google.com/uc?id=1Ygzt2rWCp-bGjNLS5og2rMcIgc9kJDzX&export=download',
               duration: const Duration(minutes: 11, seconds: 20),
               description: 'FIFO, circular, and deques',
             ),
@@ -123,7 +123,7 @@ class CourseData {
               id: 'DS_V3',
               title: 'Applications of Stacks',
               url:
-                  'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerBlazes.mp4',
+                  'https://drive.google.com/uc?id=1v1VZxcJY0SoMW5I2sbIgrUBWGHDIs2i0&export=download',
               duration: const Duration(minutes: 12, seconds: 40),
               description: 'Practical use cases and problems',
             ),
@@ -137,7 +137,7 @@ class CourseData {
               id: 'DS_V4',
               title: 'Binary Trees Fundamentals',
               url:
-                  'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerEscapes.mp4',
+                  'https://drive.google.com/uc?id=1msncCB63W-zqTF5wkVnEjvYnC9rCAQKv&export=download',
               duration: const Duration(minutes: 14, seconds: 15),
               description: 'Tree structure and traversal',
             ),
@@ -145,7 +145,7 @@ class CourseData {
               id: 'DS_V5',
               title: 'Balanced Trees (AVL)',
               url:
-                  'https://commondatastorage.googleapis.com/gtv-videos-library/sample/BigBuckBunny.mp4',
+                  'https://drive.google.com/uc?id=1Ct269y33DGT1U_CzTaKvx81tJmNRjOvV&export=download',
               duration: const Duration(minutes: 13),
               description: 'Maintaining O(log n) operations',
             ),
@@ -166,7 +166,7 @@ class CourseData {
               id: 'AL_V1',
               title: 'QuickSort Deep Dive',
               url:
-                  'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ElFuerte.mp4',
+                  'https://drive.google.com/uc?id=1Ygzt2rWCp-bGjNLS5og2rMcIgc9kJDzX&export=download',
               duration: const Duration(minutes: 16),
               description: 'Most efficient general-purpose sorting',
             ),
@@ -174,7 +174,7 @@ class CourseData {
               id: 'AL_V2',
               title: 'MergeSort and Stability',
               url:
-                  'https://commondatastorage.googleapis.com/gtv-videos-library/sample/BigBuckBunny.mp4',
+                  'https://drive.google.com/uc?id=1v1VZxcJY0SoMW5I2sbIgrUBWGHDIs2i0&export=download',
               duration: const Duration(minutes: 12, seconds: 50),
               description: 'Stable sorting and divide-conquer',
             ),

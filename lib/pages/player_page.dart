@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:edutube_shorts/data/course_data.dart';
 import 'package:edutube_shorts/models/course.dart';
 import 'package:edutube_shorts/models/topic.dart';
 import 'package:edutube_shorts/widgets/video_player_item.dart';
-import 'package:edutube_shorts/utils/video_preloader.dart' as preloader;
 
 /// PlayerPage displays a TikTok-style nested swipe UI for educational videos
 ///
@@ -76,10 +76,10 @@ class _PlayerPageState extends State<PlayerPage> {
       body: PageView.builder(
         controller: _horizontalController,
         scrollDirection: Axis.horizontal,
-        onPageChanged: (index) {
+        onPageChanged: (topicIndex) {
           setState(() {});
-          // Preload videos from the next topic
-          _preloadNextTopicVideos(index);
+          // M+1 Prefetching: Preload first video of next topic (horizontal)
+          _prefetchNextTopicFirstVideo(topicIndex);
         },
         itemCount: course.topics.length,
         itemBuilder: (context, topicIndex) {
@@ -105,6 +105,12 @@ class _PlayerPageState extends State<PlayerPage> {
             controller: verticalController,
             scrollDirection: Axis.vertical,
             physics: const PageScrollPhysics(),
+            onPageChanged: (videoIndex) {
+              // Force rebuild to update isVisible flag
+              setState(() {});
+              // N+1 Prefetching: Prefetch next video in current topic
+              _prefetchNextVideo(topicIndex, videoIndex);
+            },
             itemCount: topic.videos.length,
             itemBuilder: (context, videoIndex) {
               return _buildVideoPage(topic, videoIndex, verticalController);
@@ -138,13 +144,17 @@ class _PlayerPageState extends State<PlayerPage> {
   ) {
     final video = topic.videos[videoIndex];
 
-    // Check if this page is visible (PageView only shows 1 page at a time)
-    // We pass true because VideoPlayerItem handles visibility internally
-    final isVisible =
-        videoIndex ==
-        (verticalController.hasClients
-            ? verticalController.page?.round() ?? 0
-            : 0);
+    // Determine if this video is currently visible
+    // Use both current page and nextPageIndex to handle transition states
+    bool isVisible = false;
+    if (verticalController.hasClients) {
+      final currentPage = verticalController.page ?? 0;
+      final roundedPage = currentPage.round();
+      // Video is visible if it matches the current or next page during transition
+      isVisible =
+          (videoIndex == roundedPage) ||
+          (videoIndex == currentPage.ceil() && currentPage != roundedPage);
+    }
 
     return VideoPlayerItem(
       key: ValueKey('${topic.id}_${video.id}'),
@@ -244,21 +254,29 @@ class _PlayerPageState extends State<PlayerPage> {
     );
   }
 
-  /// Preload videos from the next topic to optimize UX
-  void _preloadNextTopicVideos(int currentTopicIndex) {
-    // Preload the next topic's first video
-    if (currentTopicIndex + 1 < course.topics.length) {
-      final nextTopic = course.topics[currentTopicIndex + 1];
-      if (nextTopic.videos.isNotEmpty) {
-        preloader.VideoPreloader.preloadVideo(nextTopic.videos.first);
-      }
-    }
+  /// N+1 Prefetching: Prefetch next video in current topic (vertical swipe)
+  void _prefetchNextVideo(int topicIndex, int videoIndex) {
+    final topic = course.topics[topicIndex];
 
-    // Preload the previous topic's first video
-    if (currentTopicIndex - 1 >= 0) {
-      final prevTopic = course.topics[currentTopicIndex - 1];
-      if (prevTopic.videos.isNotEmpty) {
-        preloader.VideoPreloader.preloadVideo(prevTopic.videos.first);
+    // Bounds check: only prefetch if there's a next video
+    if (videoIndex + 1 < topic.videos.length) {
+      final nextVideo = topic.videos[videoIndex + 1];
+      debugPrint('🎬 N+1 Prefetch: ${topic.title} → ${nextVideo.title}');
+      DefaultCacheManager().downloadFile(nextVideo.url);
+    }
+  }
+
+  /// M+1 Prefetching: Prefetch first video of next topic (horizontal swipe)
+  void _prefetchNextTopicFirstVideo(int topicIndex) {
+    // Bounds check: only prefetch if there's a next topic
+    if (topicIndex + 1 < course.topics.length) {
+      final nextTopic = course.topics[topicIndex + 1];
+      if (nextTopic.videos.isNotEmpty) {
+        final nextVideoUrl = nextTopic.videos.first.url;
+        debugPrint(
+          '🎬 M+1 Prefetch: ${nextTopic.title} → ${nextTopic.videos.first.title}',
+        );
+        DefaultCacheManager().downloadFile(nextVideoUrl);
       }
     }
   }
