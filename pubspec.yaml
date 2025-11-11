@@ -46,6 +46,9 @@ dependencies:
   
   # Video caching and prefetching
   flutter_cache_manager: ^3.3.1
+  
+  # URL launcher for opening links
+  url_launcher: ^6.3.0
 
 dev_dependencies:
   flutter_test:

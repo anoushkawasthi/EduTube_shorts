@@ -10,12 +10,14 @@ class VideoPlayerItem extends StatefulWidget {
   final Video video;
   final bool isVisible;
   final VoidCallback? onInitialized;
+  final Function(bool isPlaying)? onPlayingStateChanged;
 
   const VideoPlayerItem({
     super.key,
     required this.video,
     required this.isVisible,
     this.onInitialized,
+    this.onPlayingStateChanged,
   });
 
   @override
@@ -130,29 +132,12 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                               ),
                             ),
                           ),
-                        // Video metadata overlay
+                        // Video progress bar overlay
                         Positioned(
                           bottom: 20,
                           left: 16,
                           right: 16,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                widget.video.title,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 8),
-                              VideoProgressBar(_controller),
-                            ],
-                          ),
+                          child: VideoProgressBar(_controller),
                         ),
                       ],
                     ),
@@ -203,9 +188,11 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     if (_controller.value.isPlaying) {
       _controller.pause();
       _userPausedManually = true; // User explicitly paused
+      widget.onPlayingStateChanged?.call(false);
     } else {
       _controller.play();
       _userPausedManually = false; // User resumed, not manual pause anymore
+      widget.onPlayingStateChanged?.call(true);
     }
     setState(() {});
   }
