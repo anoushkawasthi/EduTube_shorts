@@ -33,19 +33,11 @@ class HomePage extends StatelessWidget {
             backgroundColor: Colors.transparent,
             elevation: 0,
             automaticallyImplyLeading: false,
-            title: Row(
-              children: [
-                SvgPicture.asset('lib/main-site-logo.svg', height: 40, width: 40),
-                const SizedBox(width: 12),
-                const Text(
-                  'EduTube',
-                  style: TextStyle(
-                    color: Color(0xFF0B2E4A),
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+            centerTitle: true,
+            title: SvgPicture.asset(
+              'lib/main-site-logo.svg',
+              height: 32,
+              width: 32,
             ),
           ),
         ),
@@ -156,16 +148,16 @@ class _CourseCardState extends State<CourseCard>
             child: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    Colors.white,
-                    const Color(0xFFFAFAFA),
-                  ],
+                  colors: [Colors.white, const Color(0xFFFAFAFA)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Row(
                   children: [
                     // Left accent bar
