@@ -315,6 +315,17 @@ class _PlayerPageState extends State<PlayerPage> {
           ),
         ),
 
+        // Black space at the bottom
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: Container(
+            height: 40,
+            color: Colors.black,
+          ),
+        ),
+
         // More Options Button (Below Share) - REMOVED (now in Column above)
       ],
     );
@@ -585,13 +596,14 @@ class _PlayerPageState extends State<PlayerPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.swipe_left, color: Colors.white24, size: 32),
+          const Icon(Icons.swipe_left, color: Color(0xFF3A5FA1), size: 32),
           const SizedBox(height: 8),
           Text(
             'Swipe left to explore more topics',
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.5),
+              color: const Color(0xFF3A5FA1),
               fontSize: 14,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],

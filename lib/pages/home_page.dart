@@ -166,10 +166,7 @@ class _CourseCardState extends State<CourseCard>
             child: Container(
               color: Colors.white,
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Row(
                   children: [
                     // Left accent bar with varied colors
