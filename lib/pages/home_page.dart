@@ -11,7 +11,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF5F7FA),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(64),
         child: Container(
@@ -33,12 +33,30 @@ class HomePage extends StatelessWidget {
             backgroundColor: Colors.transparent,
             elevation: 0,
             automaticallyImplyLeading: false,
+            leading: IconButton(
+              icon: const Icon(
+                Icons.menu,
+                color: Color(0xFF0B2E4A),
+                size: 28,
+              ),
+              onPressed: () {},
+            ),
             centerTitle: true,
             title: SvgPicture.asset(
               'lib/main-site-logo.svg',
               height: 32,
               width: 32,
             ),
+            actions: [
+              IconButton(
+                icon: const Icon(
+                  Icons.person,
+                  color: Color(0xFF0B2E4A),
+                  size: 24,
+                ),
+                onPressed: () {},
+              ),
+            ],
           ),
         ),
       ),
@@ -137,22 +155,16 @@ class _CourseCardState extends State<CourseCard>
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 12,
-                offset: const Offset(0, 2),
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.white, const Color(0xFFFAFAFA)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
+              color: Colors.white,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -160,12 +172,12 @@ class _CourseCardState extends State<CourseCard>
                 ),
                 child: Row(
                   children: [
-                    // Left accent bar
+                    // Left accent bar with varied colors
                     Container(
                       width: 4,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFB22222),
+                        color: _getAccentColor(widget.courseId),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -231,5 +243,18 @@ class _CourseCardState extends State<CourseCard>
         ),
       ),
     );
+  }
+
+  Color _getAccentColor(String courseId) {
+    // Colors from the same formal navy/blue family
+    final colors = [
+      const Color(0xFF0B2E4A), // Navy (primary)
+      const Color(0xFF1F3A70), // Deep blue
+      const Color(0xFF2E5090), // Medium blue
+      const Color(0xFF3A5FA1), // Sky blue
+      const Color(0xFF1A4D7B), // Ocean blue
+    ];
+    final hash = courseId.hashCode;
+    return colors[hash.abs() % colors.length];
   }
 }
