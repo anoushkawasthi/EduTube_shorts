@@ -475,9 +475,9 @@ class _PlayerPageState extends State<PlayerPage> {
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                 child: Text(
                   'References',
-                  style: Theme.of(context)
-                      .textTheme.titleMedium
-                      ?.copyWith(color: Colors.white),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleMedium?.copyWith(color: Colors.white),
                 ),
               ),
               ListTile(

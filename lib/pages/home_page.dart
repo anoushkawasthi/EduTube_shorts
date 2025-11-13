@@ -11,31 +11,47 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA), // Light gray-blue background
-      appBar: AppBar(
-        backgroundColor: const Color(
-          0xFF1F3A70,
-        ), // Deep blue (from Thapar brand)
-        elevation: 0,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgPicture.asset('lib/main-site-logo.svg', height: 32, width: 32),
-            const SizedBox(width: 12),
-            const Text(
-              'Thapar EduTube',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
+      backgroundColor: Colors.white,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(64),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
+            ],
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(20),
+              bottomRight: Radius.circular(20),
             ),
-          ],
+          ),
+          child: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            automaticallyImplyLeading: false,
+            title: Row(
+              children: [
+                SvgPicture.asset('lib/main-site-logo.svg', height: 40, width: 40),
+                const SizedBox(width: 12),
+                const Text(
+                  'EduTube',
+                  style: TextStyle(
+                    color: Color(0xFF0B2E4A),
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-        centerTitle: true,
       ),
       body: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
         itemCount: CourseData.courses.length,
         itemBuilder: (context, index) {
           final course = CourseData.courses[index];
@@ -59,7 +75,7 @@ class HomePage extends StatelessWidget {
 }
 
 /// CourseCard displays a single course with its metadata
-class CourseCard extends StatelessWidget {
+class CourseCard extends StatefulWidget {
   final String courseId;
   final String title;
   final String description;
@@ -76,94 +92,152 @@ class CourseCard extends StatelessWidget {
   });
 
   @override
+  State<CourseCard> createState() => _CourseCardState();
+}
+
+class _CourseCardState extends State<CourseCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 120),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.98).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _handleTapDown(TapDownDetails details) {
+    _animationController.forward();
+  }
+
+  void _handleTapUp(TapUpDetails details) {
+    _animationController.reverse();
+    widget.onTap();
+  }
+
+  void _handleTapCancel() {
+    _animationController.reverse();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
-      child: Card(
-        color: Colors.white, // White card background
-        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
-        elevation: 2, // Subtle shadow
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 4,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: _getColorByIndex(courseId),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            color: Color(0xFF1F3A70), // Deep blue
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          description,
-                          style: const TextStyle(
-                            color: Color(0xFF7A8BA8), // Muted blue-gray
-                            fontSize: 13,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    color: const Color(0xFFC4CEE0), // Light blue-gray
-                    size: 16,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFC8E6C9), // Pastel green (from website)
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '$topicCount topics',
-                  style: const TextStyle(
-                    color: Color(0xFF2E7D32), // Dark green
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+      onTapDown: _handleTapDown,
+      onTapUp: _handleTapUp,
+      onTapCancel: _handleTapCancel,
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 2),
               ),
             ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.white,
+                    const Color(0xFFFAFAFA),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  children: [
+                    // Left accent bar
+                    Container(
+                      width: 4,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFB22222),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Content
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.title,
+                            style: const TextStyle(
+                              color: Color(0xFF0B2E4A),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            widget.description,
+                            style: const TextStyle(
+                              color: Color(0xFF9CA3AF),
+                              fontSize: 13,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 10),
+                          // Topic count chip
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF22C55E),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              '${widget.topicCount} topics',
+                              style: const TextStyle(
+                                color: Color(0xFF1F2937),
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Right arrow icon
+                    const Icon(
+                      Icons.arrow_forward_ios,
+                      color: Color(0xFF0B2E4A),
+                      size: 18,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
       ),
     );
-  }
-
-  Color _getColorByIndex(String courseId) {
-    final hash = courseId.hashCode;
-    // Pastel colors matching Thapar website
-    final colors = [
-      const Color(0xFFC8E6C9), // Pastel Green
-      const Color(0xFFB3E5FC), // Pastel Blue
-      const Color(0xFFFFCCBC), // Pastel Orange
-      const Color(0xFFF8BBD0), // Pastel Pink
-    ];
-    return colors[hash.abs() % colors.length];
   }
 }
