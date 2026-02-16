@@ -19,7 +19,7 @@ class HomePage extends StatelessWidget {
             color: Colors.white,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.08),
+                color: Colors.black.withValues(alpha: 0.08),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -34,11 +34,7 @@ class HomePage extends StatelessWidget {
             elevation: 0,
             automaticallyImplyLeading: false,
             leading: IconButton(
-              icon: const Icon(
-                Icons.menu,
-                color: Color(0xFF0B2E4A),
-                size: 28,
-              ),
+              icon: const Icon(Icons.menu, color: Color(0xFF0B2E4A), size: 28),
               onPressed: () {},
             ),
             centerTitle: true,
@@ -155,7 +151,7 @@ class _CourseCardState extends State<CourseCard>
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -166,7 +162,10 @@ class _CourseCardState extends State<CourseCard>
             child: Container(
               color: Colors.white,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Row(
                   children: [
                     // Left accent bar with varied colors

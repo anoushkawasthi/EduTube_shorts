@@ -30,7 +30,7 @@ class _PlayerPageState extends State<PlayerPage> {
   bool _isVideoPlaying = true; // Track video playing state
   bool _showSwipeHint = false; // Show swipe hint when at last video
   Timer? _hintTimer; // Timer for hiding the hint
-  Set<String> _likedVideoIds = {}; // Track which videos are liked
+  final Set<String> _likedVideoIds = {}; // Track which videos are liked
 
   @override
   void initState() {
@@ -198,44 +198,40 @@ class _PlayerPageState extends State<PlayerPage> {
         ),
 
         // ============ UI OVERLAY LAYER ============
-        // Top-Left: Tappable Title (Topic Selector) - Only visible when paused
-        if (!_isVideoPlaying)
-          Positioned(
-            top: 16,
-            left: 16,
-            child: GestureDetector(
-              onTap: () => _navigateToTopicsPage(),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      topic.title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    const Icon(
-                      Icons.expand_more,
+        // Bottom-Left: Tappable Topic (Topic Selector) - Always visible
+        Positioned(
+          bottom: 60,
+          left: 12,
+          child: GestureDetector(
+            onTap: () => _navigateToTopicsPage(),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    topic.title,
+                    style: const TextStyle(
                       color: Colors.white,
-                      size: 18,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${topic.videos.length} videos',
+                    style: const TextStyle(color: Colors.grey, fontSize: 11),
+                  ),
+                ],
               ),
             ),
           ),
+        ),
 
         // Side-Right: Action Buttons (Like, Info, More) - Vertically Aligned with Equal Spacing
         Positioned(
@@ -320,10 +316,7 @@ class _PlayerPageState extends State<PlayerPage> {
           bottom: 0,
           left: 0,
           right: 0,
-          child: Container(
-            height: 40,
-            color: Colors.black,
-          ),
+          child: Container(height: 40, color: Colors.black),
         ),
 
         // More Options Button (Below Share) - REMOVED (now in Column above)

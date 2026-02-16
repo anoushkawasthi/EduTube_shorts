@@ -6,89 +6,75 @@ class CourseData {
   static final List<Course> courses = [
     Course(
       id: 'UCS101',
-      title: 'Numerical Analysis',
-      description: 'Master numerical methods for scientific computing',
+      title: 'Communication',
+      description:
+          'Comprehensive guide to communication concepts and modulation techniques',
       topics: [
         Topic(
-          id: 'NA_T1',
-          title: 'Root Finding Methods',
+          id: 'COMM_T1',
+          title: 'Topic 1',
           videos: [
             Video(
-              id: 'NA_V1',
-              title: 'Bisection Method Introduction',
+              id: 'COMM_V1',
+              title: 'Video 1',
               url:
-                  'https://drive.google.com/uc?id=11IMPij-wfVcqEM61fnNT-_KS57OhEGJr&export=download',
+                  'https://drive.google.com/uc?id=1Bo-fuizCsyeJXgVNuJgbkxt9DImMxggn&export=download',
+              duration: const Duration(minutes: 0, seconds: 0),
+              description: 'Topic 1 Video 1',
+            ),
+            Video(
+              id: 'COMM_V2',
+              title: 'Video 2',
+              url:
+                  'https://drive.google.com/uc?id=15-3t5VtV3FAvV5P9qUO10ee5bv88ZtZI&export=download',
+              duration: const Duration(minutes: 0, seconds: 0),
+              description: 'Topic 1 Video 2',
+            ),
+            Video(
+              id: 'COMM_V3',
+              title: 'Video 3',
+              url:
+                  'https://drive.google.com/uc?id=1D6l-lkByS2U7R5Gqy0SrU_EFTekzHtZG&export=download',
+              duration: const Duration(minutes: 0, seconds: 0),
+              description: 'Topic 1 Video 3',
+            ),
+          ],
+        ),
+        Topic(
+          id: 'COMM_T2',
+          title: 'Basics of Communication',
+          videos: [
+            Video(
+              id: 'COMM_V4',
+              title: 'What is Communication',
+              url:
+                  'https://drive.google.com/uc?id=1OzxUql7h6CMe4HSz9qEYL6dLenYB8BgU&export=download',
               duration: const Duration(minutes: 8, seconds: 45),
-              description:
-                  'Learn how the bisection method works for finding roots',
+              description: 'Introduction to communication fundamentals',
             ),
             Video(
-              id: 'NA_V2',
-              title: 'Newton-Raphson Method',
+              id: 'COMM_V5',
+              title: 'Types of Communication',
               url:
-                  'https://drive.google.com/uc?id=1lC7mbvfXyi4SbTAwd0AABcKJWVfbcVlw&export=download',
+                  'https://drive.google.com/uc?id=1q362MqfjsgyPy72AimNs7K5RoIUL9QZB&export=download',
               duration: const Duration(minutes: 12, seconds: 30),
-              description: 'Understand the faster Newton-Raphson approach',
+              description: 'Explore different types and modes of communication',
             ),
             Video(
-              id: 'NA_V3',
-              title: 'Secant Method Explained',
+              id: 'COMM_V6',
+              title: 'Modulation Part 1',
               url:
-                  'https://drive.google.com/uc?id=10I__w-0WJZggd7mUbdBynuraQ16hngk0&export=download',
+                  'https://drive.google.com/uc?id=1DjudfhL8UBaMCotMuWTzUwRU8MBk15Vx&export=download',
               duration: const Duration(minutes: 10, seconds: 15),
-              description: 'Explore the secant method without derivatives',
-            ),
-          ],
-        ),
-        Topic(
-          id: 'NA_T2',
-          title: 'Linear Systems',
-          videos: [
-            Video(
-              id: 'NA_V4',
-              title: 'Gaussian Elimination Basics',
-              url:
-                  'https://drive.google.com/uc?id=11IMPij-wfVcqEM61fnNT-_KS57OhEGJr&export=download',
-              duration: const Duration(minutes: 15),
-              description: 'Foundation of solving linear systems',
+              description: 'Introduction to modulation techniques',
             ),
             Video(
-              id: 'NA_V5',
-              title: 'LU Decomposition',
+              id: 'COMM_V7',
+              title: 'Modulation Part 2',
               url:
-                  'https://drive.google.com/uc?id=1lC7mbvfXyi4SbTAwd0AABcKJWVfbcVlw&export=download',
-              duration: const Duration(minutes: 14, seconds: 20),
-              description: 'Matrix factorization for efficient solutions',
-            ),
-          ],
-        ),
-        Topic(
-          id: 'NA_T3',
-          title: 'Interpolation',
-          videos: [
-            Video(
-              id: 'NA_V6',
-              title: 'Lagrange Interpolation',
-              url:
-                  'https://drive.google.com/uc?id=10I__w-0WJZggd7mUbdBynuraQ16hngk0&export=download',
-              duration: const Duration(minutes: 11, seconds: 50),
-              description: 'Polynomial interpolation using Lagrange basis',
-            ),
-            Video(
-              id: 'NA_V7',
-              title: 'Spline Interpolation',
-              url:
-                  'https://drive.google.com/uc?id=11IMPij-wfVcqEM61fnNT-_KS57OhEGJr&export=download',
-              duration: const Duration(minutes: 13, seconds: 45),
-              description: 'Smooth curve fitting with splines',
-            ),
-            Video(
-              id: 'NA_V8',
-              title: 'Newton Forward Differences',
-              url:
-                  'https://drive.google.com/uc?id=1lC7mbvfXyi4SbTAwd0AABcKJWVfbcVlw&export=download',
-              duration: const Duration(minutes: 9, seconds: 30),
-              description: 'Efficient polynomial evaluation',
+                  'https://drive.google.com/uc?id=1nASs344N-1tDpJFjASmJnV8rDFXkvgLm&export=download',
+              duration: const Duration(minutes: 11, seconds: 20),
+              description: 'Advanced modulation concepts and applications',
             ),
           ],
         ),
