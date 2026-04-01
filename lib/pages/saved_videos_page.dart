@@ -49,14 +49,18 @@ class _SavedVideosPageState extends State<SavedVideosPage> {
               padding: const EdgeInsets.only(right: 12),
               child: Center(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     '${videos.length}',
-                    style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -68,9 +72,11 @@ class _SavedVideosPageState extends State<SavedVideosPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.bookmark_outline_rounded, size: 64, color: Color(0xFFD1D5DB)),
+                  Icon(Icons.bookmark_outline_rounded,
+                      size: 64, color: Color(0xFFD1D5DB)),
                   SizedBox(height: 16),
-                  Text('No saved videos yet', style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 16)),
+                  Text('No saved videos yet',
+                      style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 16)),
                   SizedBox(height: 8),
                   Text(
                     'Tap the bookmark icon on a video\nto save it here',
@@ -88,12 +94,15 @@ class _SavedVideosPageState extends State<SavedVideosPage> {
                 return _VideoTile(
                   video: video,
                   trailing: IconButton(
-                    icon: const Icon(Icons.bookmark_remove_rounded, color: Color(0xFFDC2626)),
+                    icon: const Icon(Icons.bookmark_remove_rounded,
+                        color: Color(0xFFDC2626)),
                     onPressed: () {
                       HapticFeedback.lightImpact();
                       _service.toggleSave(video.id);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Removed from saved'), duration: Duration(seconds: 1)),
+                        const SnackBar(
+                            content: Text('Removed from saved'),
+                            duration: Duration(seconds: 1)),
                       );
                     },
                   ),
@@ -134,7 +143,8 @@ class _VideoTile extends StatelessWidget {
             color: const Color(0xFF1F3A70).withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(Icons.play_circle_rounded, color: Color(0xFF1F3A70), size: 24),
+          child: const Icon(Icons.play_circle_rounded,
+              color: Color(0xFF1F3A70), size: 24),
         ),
         title: Text(
           video.title,

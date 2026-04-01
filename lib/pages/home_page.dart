@@ -26,10 +26,9 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final courses = CourseData.courses;
-    final totalTopics =
-        courses.fold<int>(0, (s, c) => s + c.topics.length);
-    final totalVideos = courses.fold<int>(
-        0, (s, c) => s + c.topics.fold<int>(0, (s2, t) => s2 + t.videos.length));
+    final totalTopics = courses.fold<int>(0, (s, c) => s + c.topics.length);
+    final totalVideos = courses.fold<int>(0,
+        (s, c) => s + c.topics.fold<int>(0, (s2, t) => s2 + t.videos.length));
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4F8),
@@ -193,8 +192,8 @@ class HomePage extends StatelessWidget {
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final course = courses[index];
-                      final videoCount = course.topics.fold<int>(
-                          0, (s, t) => s + t.videos.length);
+                      final videoCount = course.topics
+                          .fold<int>(0, (s, t) => s + t.videos.length);
                       return CourseCard(
                         courseId: course.id,
                         title: course.title,
@@ -206,8 +205,7 @@ class HomePage extends StatelessWidget {
                           HapticFeedback.mediumImpact();
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) =>
-                                  PlayerPage(courseId: course.id),
+                              builder: (_) => PlayerPage(courseId: course.id),
                             ),
                           );
                         },
@@ -226,10 +224,12 @@ class HomePage extends StatelessWidget {
   Widget _buildDrawer(BuildContext context) {
     final totalCourses = CourseData.courses.length;
     final totalTopics = CourseData.courses.fold<int>(
-      0, (sum, c) => sum + c.topics.length,
+      0,
+      (sum, c) => sum + c.topics.length,
     );
     final totalVideos = CourseData.courses.fold<int>(
-      0, (sum, c) => sum + c.topics.fold<int>(0, (s, t) => s + t.videos.length),
+      0,
+      (sum, c) => sum + c.topics.fold<int>(0, (s, t) => s + t.videos.length),
     );
 
     return Drawer(
@@ -260,7 +260,8 @@ class HomePage extends StatelessWidget {
                   SvgPicture.asset(
                     'lib/main-site-logo.svg',
                     height: 36,
-                    colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                    colorFilter:
+                        const ColorFilter.mode(Colors.white, BlendMode.srcIn),
                   ),
                   const SizedBox(height: 12),
                   const Text(
@@ -296,7 +297,8 @@ class HomePage extends StatelessWidget {
               label: 'Saved Videos',
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const SavedVideosPage()));
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const SavedVideosPage()));
               },
             ),
             _DrawerItem(
@@ -304,18 +306,23 @@ class HomePage extends StatelessWidget {
               label: 'Liked Videos',
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const LikedVideosPage()));
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const LikedVideosPage()));
               },
             ),
 
-            Divider(color: Colors.grey.withValues(alpha: 0.2), indent: 20, endIndent: 20),
+            Divider(
+                color: Colors.grey.withValues(alpha: 0.2),
+                indent: 20,
+                endIndent: 20),
 
             _DrawerItem(
               icon: Icons.settings_outlined,
               label: 'Settings',
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage()));
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const SettingsPage()));
               },
             ),
             _DrawerItem(
@@ -323,7 +330,10 @@ class HomePage extends StatelessWidget {
               label: 'Help & Feedback',
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpFeedbackPage()));
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const HelpFeedbackPage()));
               },
             ),
 
@@ -375,7 +385,8 @@ class HomePage extends StatelessWidget {
                 const CircleAvatar(
                   radius: 36,
                   backgroundColor: Color(0xFF1F3A70),
-                  child: Icon(Icons.person_rounded, color: Colors.white, size: 36),
+                  child:
+                      Icon(Icons.person_rounded, color: Colors.white, size: 36),
                 ),
                 const SizedBox(height: 14),
                 const Text(
@@ -395,7 +406,8 @@ class HomePage extends StatelessWidget {
 
                 // Stats row
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF5F7FA),
                     borderRadius: BorderRadius.circular(14),
@@ -404,10 +416,14 @@ class HomePage extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _buildStat('Courses', '${CourseData.courses.length}'),
-                      Container(width: 1, height: 28, color: const Color(0xFFE5E7EB)),
-                      _buildStat('Topics', '${CourseData.courses.fold<int>(0, (s, c) => s + c.topics.length)}'),
-                      Container(width: 1, height: 28, color: const Color(0xFFE5E7EB)),
-                      _buildStat('Videos', '${CourseData.courses.fold<int>(0, (s, c) => s + c.topics.fold<int>(0, (s2, t) => s2 + t.videos.length))}'),
+                      Container(
+                          width: 1, height: 28, color: const Color(0xFFE5E7EB)),
+                      _buildStat('Topics',
+                          '${CourseData.courses.fold<int>(0, (s, c) => s + c.topics.length)}'),
+                      Container(
+                          width: 1, height: 28, color: const Color(0xFFE5E7EB)),
+                      _buildStat('Videos',
+                          '${CourseData.courses.fold<int>(0, (s, c) => s + c.topics.fold<int>(0, (s2, t) => s2 + t.videos.length))}'),
                     ],
                   ),
                 ),
@@ -420,7 +436,8 @@ class HomePage extends StatelessWidget {
                   onTap: () {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Profile editing coming soon')),
+                      const SnackBar(
+                          content: Text('Profile editing coming soon')),
                     );
                   },
                 ),
@@ -430,14 +447,16 @@ class HomePage extends StatelessWidget {
                   onTap: () {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Notifications coming soon')),
+                      const SnackBar(
+                          content: Text('Notifications coming soon')),
                     );
                   },
                 ),
                 _ProfileOption(
                   icon: Icons.dark_mode_outlined,
                   label: 'Dark Mode',
-                  trailing: const Text('Soon', style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 12)),
+                  trailing: const Text('Soon',
+                      style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 12)),
                   onTap: () {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -522,8 +541,7 @@ class _CourseCardState extends State<CourseCard>
     super.dispose();
   }
 
-  void _handleTapDown(TapDownDetails details) =>
-      _animationController.forward();
+  void _handleTapDown(TapDownDetails details) => _animationController.forward();
 
   void _handleTapUp(TapUpDetails details) {
     _animationController.reverse();
@@ -769,7 +787,9 @@ class _ProfileOption extends StatelessWidget {
           fontWeight: FontWeight.w500,
         ),
       ),
-      trailing: trailing ?? const Icon(Icons.chevron_right_rounded, color: Color(0xFFD1D5DB), size: 20),
+      trailing: trailing ??
+          const Icon(Icons.chevron_right_rounded,
+              color: Color(0xFFD1D5DB), size: 20),
       contentPadding: EdgeInsets.zero,
       dense: true,
       visualDensity: const VisualDensity(vertical: -1),

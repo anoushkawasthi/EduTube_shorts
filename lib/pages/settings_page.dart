@@ -119,14 +119,19 @@ class _SettingsPageState extends State<SettingsPage> {
               final confirmed = await showDialog<bool>(
                 context: context,
                 builder: (ctx) => AlertDialog(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
                   title: const Text('Clear Cache?'),
-                  content: const Text('This will remove all cached videos. They will be re-downloaded when you watch them again.'),
+                  content: const Text(
+                      'This will remove all cached videos. They will be re-downloaded when you watch them again.'),
                   actions: [
-                    TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+                    TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: const Text('Cancel')),
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, true),
-                      child: const Text('Clear', style: TextStyle(color: Color(0xFFDC2626))),
+                      child: const Text('Clear',
+                          style: TextStyle(color: Color(0xFFDC2626))),
                     ),
                   ],
                 ),

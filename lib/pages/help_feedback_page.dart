@@ -27,23 +27,28 @@ class HelpFeedbackPage extends StatelessWidget {
           _SectionHeader(label: 'Frequently Asked Questions'),
           _FaqTile(
             question: 'How do I navigate between topics?',
-            answer: 'Swipe left or right on the video player to switch between topics. Each topic contains a set of short videos.',
+            answer:
+                'Swipe left or right on the video player to switch between topics. Each topic contains a set of short videos.',
           ),
           _FaqTile(
             question: 'How do I browse videos within a topic?',
-            answer: 'Swipe up or down to scroll through videos within the current topic, just like TikTok or Instagram Reels.',
+            answer:
+                'Swipe up or down to scroll through videos within the current topic, just like TikTok or Instagram Reels.',
           ),
           _FaqTile(
             question: 'Can I save videos for later?',
-            answer: 'Yes! Tap the bookmark icon in the video options menu to save a video. Access your saved videos from the side menu.',
+            answer:
+                'Yes! Tap the bookmark icon in the video options menu to save a video. Access your saved videos from the side menu.',
           ),
           _FaqTile(
             question: 'How do I like a video?',
-            answer: 'Tap the heart icon on the right side of the player screen. Liked videos can be viewed from the side menu.',
+            answer:
+                'Tap the heart icon on the right side of the player screen. Liked videos can be viewed from the side menu.',
           ),
           _FaqTile(
             question: 'Videos not loading?',
-            answer: 'Check your internet connection. You can also try clearing the cache in Settings. The app will re-download videos as needed.',
+            answer:
+                'Check your internet connection. You can also try clearing the cache in Settings. The app will re-download videos as needed.',
           ),
 
           const SizedBox(height: 12),
@@ -98,7 +103,8 @@ class HelpFeedbackPage extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  const Icon(Icons.school_rounded, color: Colors.white, size: 40),
+                  const Icon(Icons.school_rounded,
+                      color: Colors.white, size: 40),
                   const SizedBox(height: 12),
                   const Text(
                     'Thapar EduTube',
@@ -158,7 +164,9 @@ class HelpFeedbackPage extends StatelessWidget {
       builder: (context) {
         return Padding(
           padding: EdgeInsets.fromLTRB(
-            20, 16, 20,
+            20,
+            16,
+            20,
             MediaQuery.of(context).viewInsets.bottom + 20,
           ),
           child: Column(
@@ -167,7 +175,8 @@ class HelpFeedbackPage extends StatelessWidget {
             children: [
               Center(
                 child: Container(
-                  width: 40, height: 4,
+                  width: 40,
+                  height: 4,
                   decoration: BoxDecoration(
                     color: Colors.grey.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(2),
@@ -216,14 +225,19 @@ class HelpFeedbackPage extends StatelessWidget {
                     Navigator.pop(context);
                     controller.dispose();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Thanks for the feedback! We\'ll look into it.')),
+                      const SnackBar(
+                          content: Text(
+                              'Thanks for the feedback! We\'ll look into it.')),
                     );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _primary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text('Submit Report', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                  child: const Text('Submit Report',
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.w600)),
                 ),
               ),
             ],
@@ -296,7 +310,8 @@ class _FaqTileState extends State<_FaqTile> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.help_outline_rounded, color: Color(0xFF1F3A70), size: 20),
+                  const Icon(Icons.help_outline_rounded,
+                      color: Color(0xFF1F3A70), size: 20),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -311,7 +326,8 @@ class _FaqTileState extends State<_FaqTile> {
                   AnimatedRotation(
                     turns: _expanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 200),
-                    child: const Icon(Icons.expand_more_rounded, color: Color(0xFF9CA3AF), size: 22),
+                    child: const Icon(Icons.expand_more_rounded,
+                        color: Color(0xFF9CA3AF), size: 22),
                   ),
                 ],
               ),
@@ -328,7 +344,9 @@ class _FaqTileState extends State<_FaqTile> {
                     ),
                   ),
                 ),
-                crossFadeState: _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                crossFadeState: _expanded
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
                 duration: const Duration(milliseconds: 200),
               ),
             ],
@@ -389,7 +407,8 @@ class _ContactTile extends StatelessWidget {
           subtitle,
           style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 12),
         ),
-        trailing: const Icon(Icons.chevron_right_rounded, color: Color(0xFFD1D5DB)),
+        trailing:
+            const Icon(Icons.chevron_right_rounded, color: Color(0xFFD1D5DB)),
         onTap: onTap,
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),

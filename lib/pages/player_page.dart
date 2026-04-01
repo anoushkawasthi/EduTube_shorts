@@ -506,7 +506,8 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        final currentVideo = course.topics[_currentTopicIndex].videos[_currentVideoIndex];
+        final currentVideo =
+            course.topics[_currentTopicIndex].videos[_currentVideoIndex];
         final isSaved = _stateService.isSaved(currentVideo.id);
         return SafeArea(
           child: Column(
@@ -531,14 +532,17 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
               ),
               const SizedBox(height: 16),
               _buildSheetOption(
-                icon: isSaved ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
+                icon: isSaved
+                    ? Icons.bookmark_rounded
+                    : Icons.bookmark_outline_rounded,
                 label: isSaved ? 'Remove from Saved' : 'Save Video',
                 onTap: () {
                   _stateService.toggleSave(currentVideo.id);
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(isSaved ? 'Removed from saved' : 'Video saved'),
+                      content:
+                          Text(isSaved ? 'Removed from saved' : 'Video saved'),
                       duration: const Duration(seconds: 1),
                     ),
                   );
