@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:edutube_shorts/data/course_data.dart';
@@ -7,13 +8,6 @@ import 'package:edutube_shorts/models/topic.dart';
 import 'package:edutube_shorts/widgets/video_player_item.dart';
 import 'package:edutube_shorts/utils/video_cache_manager.dart';
 
-/// PlayerPage displays a TikTok-style nested swipe UI for educational videos
-///
-/// Structure:
-/// - Outer PageView (Horizontal): Swipe left/right between Topics
-/// - Inner PageView (Vertical): Swipe up/down between Videos within a Topic
-///
-/// This design prioritizes vertical swipes (video progression) over horizontal swipes (topic navigation)
 class PlayerPage extends StatefulWidget {
   final String courseId;
 
@@ -23,44 +17,68 @@ class PlayerPage extends StatefulWidget {
   State<PlayerPage> createState() => _PlayerPageState();
 }
 
-class _PlayerPageState extends State<PlayerPage> {
+class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
   late Course course;
   late PageController _horizontalController;
   late Map<int, PageController> _verticalControllers;
-  bool _isVideoPlaying = true; // Track video playing state
-  bool _showSwipeHint = false; // Show swipe hint when at last video
-  Timer? _hintTimer; // Timer for hiding the hint
-  final Set<String> _likedVideoIds = {}; // Track which videos are liked
+
+  int _currentTopicIndex = 0;
+  int _currentVideoIndex = 0;
+  bool _showSwipeHint = false;
+  Timer? _hintTimer;
+  final Set<String> _likedVideoIds = {};
+
+  // Animation for swipe hint
+  late AnimationController _hintAnimController;
+  late Animation<double> _hintFadeAnimation;
+  late Animation<Offset> _hintSlideAnimation;
+
+  // Animation for like button
+  late AnimationController _likeAnimController;
 
   @override
   void initState() {
     super.initState();
 
-    // Load course data
     course =
         CourseData.getCourseById(widget.courseId) ?? CourseData.courses.first;
 
-    // Initialize horizontal PageController for topics
     _horizontalController = PageController();
 
-    // Initialize a PageController for each topic's vertical swipes
     _verticalControllers = {};
     for (int i = 0; i < course.topics.length; i++) {
       _verticalControllers[i] = PageController();
     }
 
-    // Pre-cache first few videos of the first topic for instant startup
+    _hintAnimController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+    _hintFadeAnimation = CurvedAnimation(
+      parent: _hintAnimController,
+      curve: Curves.easeOut,
+    );
+    _hintSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _hintAnimController,
+      curve: Curves.easeOut,
+    ));
+
+    _likeAnimController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+
     _preloadInitialVideos();
   }
 
-  /// Pre-cache the next 2-3 videos of the first topic on startup
   void _preloadInitialVideos() {
     if (course.topics.isEmpty) return;
     final firstTopic = course.topics.first;
-    // Preload videos 1-3 (index 1, 2, 3) — current video (0) loads itself
     for (int i = 1; i < firstTopic.videos.length && i <= 3; i++) {
       VideoCacheManager.instance.downloadFile(firstTopic.videos[i].url);
-      debugPrint('🚀 Startup preload: ${firstTopic.videos[i].title}');
     }
   }
 
@@ -70,39 +88,46 @@ class _PlayerPageState extends State<PlayerPage> {
     for (var controller in _verticalControllers.values) {
       controller.dispose();
     }
-    _hintTimer?.cancel(); // Cancel timer when disposing
+    _hintTimer?.cancel();
+    _hintAnimController.dispose();
+    _likeAnimController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black, // Keep video player dark
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1F3A70), // Deep blue
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          course.title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+    if (course.topics.isEmpty) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        appBar: _buildAppBar(),
+        body: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.video_library_outlined,
+                  size: 64, color: Colors.white38),
+              SizedBox(height: 16),
+              Text('No topics available',
+                  style: TextStyle(color: Colors.white54, fontSize: 16)),
+            ],
           ),
         ),
-      ),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: _buildAppBar(),
       body: PageView.builder(
         controller: _horizontalController,
         scrollDirection: Axis.horizontal,
         onPageChanged: (topicIndex) {
+          HapticFeedback.selectionClick();
           setState(() {
-            _hintTimer?.cancel(); // Cancel timer when changing topics
-            _showSwipeHint = false; // Hide hint when changing topics
+            _currentTopicIndex = topicIndex;
+            _currentVideoIndex = 0;
+            _hideSwipeHint();
           });
-          // M+1 Prefetching: Preload first video of next topic (horizontal)
           _prefetchNextTopicFirstVideo(topicIndex);
         },
         itemCount: course.topics.length,
@@ -113,210 +138,236 @@ class _PlayerPageState extends State<PlayerPage> {
     );
   }
 
-  /// Builds a single topic page with vertical video swipe
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: const Color(0xFF1F3A70),
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+        onPressed: () => Navigator.of(context).pop(),
+      ),
+      title: Text(course.title),
+      actions: [
+        if (course.topics.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Center(
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${_currentTopicIndex + 1}/${course.topics.length}',
+                  style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
   Widget _buildTopicPage(int topicIndex) {
     final topic = course.topics[topicIndex];
     final verticalController = _verticalControllers[topicIndex]!;
 
-    return GestureDetector(
-      // Absorb gestures at the topic level to prioritize vertical swipes
-      onVerticalDragDown: (_) => {},
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Vertical PageView for videos within this topic
-          PageView.builder(
-            controller: verticalController,
-            scrollDirection: Axis.vertical,
-            physics: const PageScrollPhysics(),
-            onPageChanged: (videoIndex) {
-              // Check if this is the last video in the topic
-              final isLastVideo = videoIndex == topic.videos.length - 1;
-
-              if (isLastVideo) {
-                // Show hint when at last video
-                setState(() {
-                  _showSwipeHint = true;
-                });
-                // Cancel previous timer if it exists
-                _hintTimer?.cancel();
-                // Start 4-second timer to hide the hint
-                _hintTimer = Timer(const Duration(seconds: 4), () {
-                  if (mounted) {
-                    setState(() {
-                      _showSwipeHint = false;
-                    });
-                  }
-                });
-              } else {
-                // Hide hint when not at last video
-                _hintTimer?.cancel();
-                setState(() {
-                  _showSwipeHint = false;
-                });
-              }
-
-              // N+1 Prefetching: Prefetch next video in current topic
-              _prefetchNextVideo(topicIndex, videoIndex);
-            },
-            itemCount: topic.videos.length,
-            itemBuilder: (context, videoIndex) {
-              return _buildVideoPage(topic, videoIndex, verticalController);
-            },
-          ),
-
-          // Horizontal swipe hint (shown only when at last video and _showSwipeHint is true)
-          if (_showSwipeHint)
-            Positioned(
-              bottom: 20,
-              left: 0,
-              right: 0,
-              child: _buildNavigationHint(),
-            ),
-        ],
-      ),
-    );
-  }
-
-  /// Builds the video display page with complete UI overlay
-  Widget _buildVideoPage(
-    Topic topic,
-    int videoIndex,
-    PageController verticalController,
-  ) {
-    final video = topic.videos[videoIndex];
-
-    // Determine if this video is currently visible
-    bool isVisible = false;
-    if (verticalController.hasClients) {
-      final currentPage = verticalController.page ?? 0;
-      final roundedPage = currentPage.round();
-      isVisible = (videoIndex == roundedPage) ||
-          (videoIndex == currentPage.ceil() && currentPage != roundedPage);
+    if (topic.videos.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.videocam_off_outlined, size: 48, color: Colors.white38),
+            SizedBox(height: 12),
+            Text('No videos in this topic',
+                style: TextStyle(color: Colors.white54)),
+          ],
+        ),
+      );
     }
 
     return Stack(
       fit: StackFit.expand,
       children: [
-        // ============ VIDEO PLAYER LAYER ============
+        PageView.builder(
+          controller: verticalController,
+          scrollDirection: Axis.vertical,
+          physics: const PageScrollPhysics(),
+          onPageChanged: (videoIndex) {
+            HapticFeedback.selectionClick();
+            setState(() {
+              _currentVideoIndex = videoIndex;
+            });
+
+            final isLastVideo = videoIndex == topic.videos.length - 1;
+            if (isLastVideo && course.topics.length > 1) {
+              _showSwipeHintAnimated();
+            } else {
+              _hideSwipeHint();
+            }
+
+            _prefetchNextVideo(topicIndex, videoIndex);
+          },
+          itemCount: topic.videos.length,
+          itemBuilder: (context, videoIndex) {
+            return _buildVideoPage(
+                topic, topicIndex, videoIndex, verticalController);
+          },
+        ),
+
+        // Swipe hint with animated fade+slide
+        if (_showSwipeHint)
+          Positioned(
+            bottom: 60,
+            left: 0,
+            right: 0,
+            child: SlideTransition(
+              position: _hintSlideAnimation,
+              child: FadeTransition(
+                opacity: _hintFadeAnimation,
+                child: _buildNavigationHint(),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildVideoPage(
+    Topic topic,
+    int topicIndex,
+    int videoIndex,
+    PageController verticalController,
+  ) {
+    final video = topic.videos[videoIndex];
+
+    bool isVisible = false;
+    if (verticalController.hasClients) {
+      final currentPage = verticalController.page ?? 0;
+      isVisible = (videoIndex - currentPage).abs() < 0.5;
+    } else {
+      // First render — index 0 is visible
+      isVisible = videoIndex == 0;
+    }
+
+    final isLiked = _likedVideoIds.contains(video.id);
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // Video player
         VideoPlayerItem(
           key: ValueKey('${topic.id}_${video.id}'),
           video: video,
           isVisible: isVisible,
-          onPlayingStateChanged: (isPlaying) {
-            setState(() {
-              _isVideoPlaying = isPlaying;
-            });
-          },
         ),
 
-        // ============ UI OVERLAY LAYER ============
-        // Bottom-Left: Tappable Topic (Topic Selector) - Always visible
+        // Bottom gradient for text readability
         Positioned(
-          bottom: 60,
-          left: 12,
-          child: GestureDetector(
-            onTap: () => _navigateToTopicsPage(),
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: IgnorePointer(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              height: 160,
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    topic.title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${topic.videos.length} videos',
-                    style: const TextStyle(color: Colors.grey, fontSize: 11),
-                  ),
-                ],
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.7),
+                    Colors.transparent,
+                  ],
+                ),
               ),
             ),
           ),
         ),
 
-        // Side-Right: Action Buttons (Like, Info, More) - Vertically Aligned with Equal Spacing
+        // Bottom-Left: Video info + topic badge
         Positioned(
-          right: 12,
-          bottom: 60,
+          bottom: 56,
+          left: 14,
+          right: 76,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Like Button - Fills with white when liked
+              // Video title
+              Text(
+                video.title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  shadows: [Shadow(blurRadius: 4, color: Colors.black54)],
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (video.description.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  video.description,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.75),
+                    fontSize: 12,
+                    shadows: const [
+                      Shadow(blurRadius: 4, color: Colors.black54)
+                    ],
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+              const SizedBox(height: 8),
+              // Topic badge
               GestureDetector(
                 onTap: () {
-                  setState(() {
-                    if (_likedVideoIds.contains(video.id)) {
-                      _likedVideoIds.remove(video.id);
-                      debugPrint('👎 Unliked video: ${video.id}');
-                    } else {
-                      _likedVideoIds.add(video.id);
-                      debugPrint('❤️ Liked video: ${video.id}');
-                    }
-                  });
+                  HapticFeedback.lightImpact();
+                  _navigateToTopicsPage();
                 },
                 child: Container(
-                  width: 50,
-                  height: 50,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.5),
-                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border:
+                        Border.all(color: Colors.white.withValues(alpha: 0.2)),
                   ),
-                  child: Icon(
-                    _likedVideoIds.contains(video.id)
-                        ? Icons.thumb_up_alt
-                        : Icons.thumb_up_alt_outlined,
-                    color: _likedVideoIds.contains(video.id)
-                        ? Colors.white
-                        : Colors.white,
-                    size: 24,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Info Button
-              GestureDetector(
-                onTap: _showTopicMetadataSheet,
-                child: Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.5),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.info_outline,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              // More Options Button
-              GestureDetector(
-                onTap: _showMoreOptionsSheet,
-                child: Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.5),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.more_vert,
-                    color: Colors.white,
-                    size: 24,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.playlist_play_rounded,
+                          color: Colors.white, size: 16),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          topic.title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${videoIndex + 1}/${topic.videos.length}',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.6),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -324,26 +375,118 @@ class _PlayerPageState extends State<PlayerPage> {
           ),
         ),
 
-        // Black space at the bottom
+        // Right side: Action buttons
+        Positioned(
+          right: 12,
+          bottom: 80,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Like button
+              _buildActionButton(
+                icon: isLiked
+                    ? Icons.favorite_rounded
+                    : Icons.favorite_border_rounded,
+                color: isLiked ? Colors.redAccent : Colors.white,
+                onTap: () => _toggleLike(video.id),
+              ),
+              const SizedBox(height: 18),
+              // Info button
+              _buildActionButton(
+                icon: Icons.info_outline_rounded,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  _showTopicMetadataSheet();
+                },
+              ),
+              const SizedBox(height: 18),
+              // More button
+              _buildActionButton(
+                icon: Icons.more_horiz_rounded,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  _showMoreOptionsSheet();
+                },
+              ),
+            ],
+          ),
+        ),
+
+        // Bottom spacer
         Positioned(
           bottom: 0,
           left: 0,
           right: 0,
-          child: Container(height: 40, color: Colors.black),
+          child: Container(height: 36, color: Colors.black),
         ),
-
-        // More Options Button (Below Share) - REMOVED (now in Column above)
       ],
     );
   }
 
-  /// Navigate to a full-screen topics selection page
+  Widget _buildActionButton({
+    required IconData icon,
+    Color color = Colors.white,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 46,
+        height: 46,
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.4),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+        child: Icon(icon, color: color, size: 24),
+      ),
+    );
+  }
+
+  void _toggleLike(String videoId) {
+    HapticFeedback.lightImpact();
+    setState(() {
+      if (_likedVideoIds.contains(videoId)) {
+        _likedVideoIds.remove(videoId);
+      } else {
+        _likedVideoIds.add(videoId);
+        // Quick scale pulse
+        _likeAnimController
+            .forward()
+            .then((_) => _likeAnimController.reverse());
+      }
+    });
+  }
+
+  void _showSwipeHintAnimated() {
+    setState(() => _showSwipeHint = true);
+    _hintAnimController.forward(from: 0);
+    _hintTimer?.cancel();
+    _hintTimer = Timer(const Duration(seconds: 4), () {
+      if (mounted) {
+        _hintAnimController.reverse().then((_) {
+          if (mounted) setState(() => _showSwipeHint = false);
+        });
+      }
+    });
+  }
+
+  void _hideSwipeHint() {
+    _hintTimer?.cancel();
+    if (_showSwipeHint) {
+      _hintAnimController.reverse().then((_) {
+        if (mounted) setState(() => _showSwipeHint = false);
+      });
+    }
+  }
+
   void _navigateToTopicsPage() {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => TopicsSelectionPage(
           course: course,
+          currentTopic: _currentTopicIndex,
           onTopicSelected: (topicIndex) {
             Navigator.pop(context);
             _horizontalController.animateToPage(
@@ -357,168 +500,62 @@ class _PlayerPageState extends State<PlayerPage> {
     );
   }
 
-  /// Show bottom sheet for more options
   void _showMoreOptionsSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.grey[900],
+      backgroundColor: const Color(0xFF1A1A2E),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                'Options',
-                style: Theme.of(
-                  context,
-                ).textTheme.headlineSmall?.copyWith(color: Colors.white),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.bookmark_outline, color: Colors.white),
-              title: const Text(
-                'Add to Playlist',
-                style: TextStyle(color: Colors.white),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Added to playlist')),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.flag_outlined, color: Colors.white),
-              title: const Text(
-                'Report',
-                style: TextStyle(color: Colors.white),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Report submitted')),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.info_outline, color: Colors.white),
-              title: const Text('About', style: TextStyle(color: Colors.white)),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            const SizedBox(height: 16),
-          ],
-        );
-      },
-    );
-  }
-
-  /// Show bottom sheet with topic metadata and info
-  void _showTopicMetadataSheet() {
-    // Find current topic index
-    int currentTopicIndex = _horizontalController.hasClients
-        ? _horizontalController.page?.round() ?? 0
-        : 0;
-    final topic = course.topics[currentTopicIndex];
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.grey[900],
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) {
-        return SingleChildScrollView(
+        return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Topic Information Header
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Topic ${currentTopicIndex + 1}: ${topic.title}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${topic.videos.length}/${topic.videos.length} videos',
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '${currentTopicIndex + 1}/${course.topics.length}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              const Divider(color: Colors.grey, height: 1),
-              // References Section
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                child: Text(
-                  'References',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleMedium?.copyWith(color: Colors.white),
-                ),
+              const SizedBox(height: 20),
+              const Text(
+                'Options',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600),
               ),
-              ListTile(
-                leading: const Icon(Icons.link, color: Colors.blue),
-                title: const Text(
-                  'GeeksforGeeks',
-                  style: TextStyle(color: Colors.white),
-                ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              const SizedBox(height: 16),
+              _buildSheetOption(
+                icon: Icons.bookmark_outline_rounded,
+                label: 'Add to Playlist',
                 onTap: () {
                   Navigator.pop(context);
-                  _showLinkConfirmationDialog('https://www.geeksforgeeks.org');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Added to playlist')),
+                  );
                 },
               ),
-              ListTile(
-                leading: const Icon(Icons.link, color: Colors.orange),
-                title: const Text(
-                  'LeetCode',
-                  style: TextStyle(color: Colors.white),
-                ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              _buildSheetOption(
+                icon: Icons.flag_outlined,
+                label: 'Report',
                 onTap: () {
                   Navigator.pop(context);
-                  _showLinkConfirmationDialog('https://leetcode.com/');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Report submitted')),
+                  );
+                },
+              ),
+              _buildSheetOption(
+                icon: Icons.info_outline_rounded,
+                label: 'About EduTube',
+                onTap: () {
+                  Navigator.pop(context);
+                  _showAboutDialog();
                 },
               ),
               const SizedBox(height: 16),
@@ -529,27 +566,222 @@ class _PlayerPageState extends State<PlayerPage> {
     );
   }
 
-  /// Show confirmation dialog before launching URL
+  void _showAboutDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title:
+            const Text('Thapar EduTube', style: TextStyle(color: Colors.white)),
+        content: const Text(
+          'A TikTok-style educational video platform for Thapar University students.\n\nSwipe vertically through videos, horizontally to switch topics.',
+          style: TextStyle(color: Colors.white70, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Got it'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSheetOption({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.white70, size: 22),
+      title: Text(label,
+          style: const TextStyle(color: Colors.white, fontSize: 14)),
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+      dense: true,
+    );
+  }
+
+  void _showTopicMetadataSheet() {
+    final topic = course.topics[_currentTopicIndex];
+    final currentVideo = _currentVideoIndex + 1;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1A1A2E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 8),
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Header
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              topic.title,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 17,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Video $currentVideo of ${topic.videos.length}',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.5),
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1F3A70),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          'Topic ${_currentTopicIndex + 1}/${course.topics.length}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Progress bar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: topic.videos.isNotEmpty
+                          ? currentVideo / topic.videos.length
+                          : 0,
+                      minHeight: 4,
+                      backgroundColor: Colors.white12,
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                          Color(0xFF22C55E)),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Divider(color: Colors.white.withValues(alpha: 0.1), height: 1),
+                const SizedBox(height: 12),
+                // References
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    'References',
+                    style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _buildReferenceLink(
+                  icon: Icons.code_rounded,
+                  label: 'GeeksforGeeks',
+                  color: const Color(0xFF2F8D46),
+                  url: 'https://www.geeksforgeeks.org',
+                ),
+                _buildReferenceLink(
+                  icon: Icons.terminal_rounded,
+                  label: 'LeetCode',
+                  color: Colors.orange,
+                  url: 'https://leetcode.com/',
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildReferenceLink({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required String url,
+  }) {
+    return ListTile(
+      leading: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, color: color, size: 18),
+      ),
+      title: Text(label,
+          style: const TextStyle(color: Colors.white, fontSize: 14)),
+      trailing: const Icon(Icons.open_in_new_rounded,
+          color: Colors.white38, size: 16),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+      dense: true,
+      onTap: () {
+        Navigator.pop(context);
+        _showLinkConfirmationDialog(url);
+      },
+    );
+  }
+
   void _showLinkConfirmationDialog(String url) {
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          backgroundColor: Colors.grey[850],
-          title: const Text(
-            'Open Link?',
-            style: TextStyle(color: Colors.white),
-          ),
+          backgroundColor: const Color(0xFF1A1A2E),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title:
+              const Text('Open Link?', style: TextStyle(color: Colors.white)),
           content: Text(
-            'Open this link in your browser?\n\n$url',
-            style: const TextStyle(color: Colors.white70),
+            'This will open in your browser:\n$url',
+            style: const TextStyle(color: Colors.white70, height: 1.4),
           ),
           actions: [
             TextButton(
               child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
+              onPressed: () => Navigator.of(dialogContext).pop(),
             ),
             TextButton(
               child: const Text('Open'),
@@ -564,102 +796,86 @@ class _PlayerPageState extends State<PlayerPage> {
     );
   }
 
-  /// Launch URL in browser
   Future<void> _launchURL(String url) async {
-    debugPrint('🔗 Attempting to launch URL: $url');
     final uri = Uri.parse(url);
     try {
-      final canLaunch = await canLaunchUrl(uri);
-      debugPrint('🔗 Can launch URL: $canLaunch');
-
-      if (canLaunch) {
+      if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
-        debugPrint('🔗 Successfully launched URL: $url');
       } else {
-        debugPrint('❌ Cannot launch URL: $url');
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Could not launch $url')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Could not open $url')),
+          );
         }
       }
     } catch (e) {
-      debugPrint('❌ Error launching URL: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error launching URL: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
       }
     }
   }
 
-  /// Handle like video action
-
-  /// Builds the topic metadata overlay showing title and progress
-  /// Builds navigation hint for horizontal swipes between topics
   Widget _buildNavigationHint() {
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.swipe_left, color: Color(0xFF3A5FA1), size: 32),
-          const SizedBox(height: 8),
-          Text(
-            'Swipe left to explore more topics',
-            style: TextStyle(
-              color: const Color(0xFF3A5FA1),
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.swipe_left_rounded, color: Colors.white70, size: 22),
+            SizedBox(width: 8),
+            Text(
+              'Swipe for next topic',
+              style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  /// N+1/N+2 Prefetching: Prefetch next 2 videos in current topic (vertical swipe)
   void _prefetchNextVideo(int topicIndex, int videoIndex) {
     final topic = course.topics[topicIndex];
     final cache = VideoCacheManager.instance;
-
-    // Prefetch next 2 videos ahead
     for (int offset = 1; offset <= 2; offset++) {
       final nextIdx = videoIndex + offset;
       if (nextIdx < topic.videos.length) {
-        final nextVideo = topic.videos[nextIdx];
-        debugPrint(
-            '🎬 N+$offset Prefetch: ${topic.title} → ${nextVideo.title}');
-        cache.downloadFile(nextVideo.url);
+        cache.downloadFile(topic.videos[nextIdx].url);
       }
     }
   }
 
-  /// M+1 Prefetching: Prefetch first video of next topic (horizontal swipe)
   void _prefetchNextTopicFirstVideo(int topicIndex) {
     final cache = VideoCacheManager.instance;
-
-    // Prefetch first 2 videos of next topic
     if (topicIndex + 1 < course.topics.length) {
       final nextTopic = course.topics[topicIndex + 1];
       for (int i = 0; i < nextTopic.videos.length && i < 2; i++) {
-        debugPrint(
-          '🎬 M+1 Prefetch: ${nextTopic.title} → ${nextTopic.videos[i].title}',
-        );
         cache.downloadFile(nextTopic.videos[i].url);
       }
     }
   }
 }
 
-/// TopicsSelectionPage - A dedicated full-screen page for selecting topics
+/// TopicsSelectionPage with current topic indicator
 class TopicsSelectionPage extends StatelessWidget {
   final Course course;
+  final int currentTopic;
   final Function(int topicIndex) onTopicSelected;
 
   const TopicsSelectionPage({
     super.key,
     required this.course,
     required this.onTopicSelected,
+    this.currentTopic = 0,
   });
 
   @override
@@ -670,73 +886,103 @@ class TopicsSelectionPage extends StatelessWidget {
         backgroundColor: const Color(0xFF1F3A70),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Select Topic',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        title: Text('${course.title} — Topics'),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: course.topics.length,
-        itemBuilder: (context, index) {
-          final topic = course.topics[index];
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.all(16),
-              leading: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1F3A70),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Center(
-                  child: Text(
-                    '${index + 1}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+      body: course.topics.isEmpty
+          ? const Center(
+              child: Text('No topics available',
+                  style: TextStyle(color: Color(0xFF9CA3AF))),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+              itemCount: course.topics.length,
+              itemBuilder: (context, index) {
+                final topic = course.topics[index];
+                final isCurrent = index == currentTopic;
+
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  elevation: isCurrent ? 3 : 1,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    side: isCurrent
+                        ? const BorderSide(color: Color(0xFF1F3A70), width: 2)
+                        : BorderSide.none,
                   ),
-                ),
-              ),
-              title: Text(
-                topic.title,
-                style: const TextStyle(
-                  color: Color(0xFF1F3A70),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              subtitle: Text(
-                '${topic.videos.length} videos',
-                style: const TextStyle(color: Colors.grey, fontSize: 14),
-              ),
-              trailing: const Icon(
-                Icons.arrow_forward_ios,
-                color: Color(0xFF1F3A70),
-                size: 18,
-              ),
-              onTap: () {
-                onTopicSelected(index);
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(14),
+                    leading: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: isCurrent
+                            ? const Color(0xFF1F3A70)
+                            : const Color(0xFF1F3A70).withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${index + 1}',
+                          style: TextStyle(
+                            color: isCurrent
+                                ? Colors.white
+                                : const Color(0xFF1F3A70),
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    title: Text(
+                      topic.title,
+                      style: const TextStyle(
+                        color: Color(0xFF0B2E4A),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        '${topic.videos.length} ${topic.videos.length == 1 ? 'video' : 'videos'}',
+                        style: const TextStyle(
+                            color: Color(0xFF9CA3AF), fontSize: 13),
+                      ),
+                    ),
+                    trailing: isCurrent
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF22C55E)
+                                  .withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text(
+                              'Current',
+                              style: TextStyle(
+                                color: Color(0xFF16A34A),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          )
+                        : const Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            color: Color(0xFF9CA3AF),
+                            size: 16,
+                          ),
+                    onTap: () {
+                      HapticFeedback.mediumImpact();
+                      onTopicSelected(index);
+                    },
+                  ),
+                );
               },
             ),
-          );
-        },
-      ),
     );
   }
 }
