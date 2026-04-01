@@ -50,16 +50,17 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
       if (fileInfo != null) {
         _controller = VideoPlayerController.file(fileInfo.file);
       } else {
-        _controller = VideoPlayerController.networkUrl(
-          Uri.parse(widget.video.url),
-        );
-        // ignore: return_of_invalid_type_from_catch_error
-        cacheManager
-            .downloadFile(widget.video.url)
-            .then((_) {})
-            .catchError((e) {
-          debugPrint('⚠️ Background cache failed: $e');
-        });
+        // Download via cache manager first — it handles redirects (e.g. Google Drive)
+        // that video_player's network URL can't follow.
+        try {
+          final downloaded = await cacheManager.downloadFile(widget.video.url);
+          _controller = VideoPlayerController.file(downloaded.file);
+        } catch (e) {
+          debugPrint('⚠️ Cache download failed, trying direct URL: $e');
+          _controller = VideoPlayerController.networkUrl(
+            Uri.parse(widget.video.url),
+          );
+        }
       }
 
       await _controller!.initialize();

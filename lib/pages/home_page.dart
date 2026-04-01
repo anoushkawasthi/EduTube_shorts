@@ -2,113 +2,486 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:edutube_shorts/data/course_data.dart';
 import 'package:edutube_shorts/pages/player_page.dart';
+import 'package:edutube_shorts/pages/saved_videos_page.dart';
+import 'package:edutube_shorts/pages/liked_videos_page.dart';
+import 'package:edutube_shorts/pages/settings_page.dart';
+import 'package:edutube_shorts/pages/help_feedback_page.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 /// HomePage displays a list of available courses
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
+  static const _navy = Color(0xFF0B2E4A);
+  static const _primary = Color(0xFF1F3A70);
+  static const _midBlue = Color(0xFF2E5090);
+
+  String _greeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
+  }
+
   @override
   Widget build(BuildContext context) {
     final courses = CourseData.courses;
+    final totalTopics =
+        courses.fold<int>(0, (s, c) => s + c.topics.length);
+    final totalVideos = courses.fold<int>(
+        0, (s, c) => s + c.topics.fold<int>(0, (s2, t) => s2 + t.videos.length));
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(64),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(20),
-              bottomRight: Radius.circular(20),
-            ),
+      backgroundColor: const Color(0xFFF0F4F8),
+      drawer: _buildDrawer(context),
+      body: Builder(
+        builder: (scaffoldContext) => CustomScrollView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
           ),
-          child: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            automaticallyImplyLeading: false,
-            leading: IconButton(
-              icon: const Icon(Icons.menu_rounded,
-                  color: Color(0xFF0B2E4A), size: 26),
-              onPressed: () {
-                HapticFeedback.lightImpact();
-              },
-            ),
-            centerTitle: true,
-            title: SvgPicture.asset(
-              'lib/main-site-logo.svg',
-              height: 32,
-              width: 32,
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(
-                  Icons.person_outline_rounded,
-                  color: Color(0xFF0B2E4A),
-                  size: 24,
+          slivers: [
+            // ─── Top bar ───
+            SliverToBoxAdapter(
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+                  child: Row(
+                    children: [
+                      _CircleButton(
+                        icon: Icons.menu_rounded,
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          Scaffold.of(scaffoldContext).openDrawer();
+                        },
+                      ),
+                      const Spacer(),
+                      SvgPicture.asset('lib/main-site-logo.svg', height: 28),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          _showProfileSheet(context);
+                        },
+                        child: const CircleAvatar(
+                          radius: 19,
+                          backgroundColor: _primary,
+                          child: Icon(Icons.person_rounded,
+                              color: Colors.white, size: 20),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                onPressed: () {
-                  HapticFeedback.lightImpact();
-                },
               ),
-            ],
-          ),
+            ),
+
+            // ─── Hero greeting banner ───
+            SliverToBoxAdapter(
+              child: Container(
+                margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [_primary, _midBlue],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _primary.withValues(alpha: 0.30),
+                      blurRadius: 24,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${_greeting()} 👋',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.75),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Ready to learn?',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _StatChip(
+                          icon: Icons.school_rounded,
+                          label: '${courses.length} Courses',
+                        ),
+                        _StatChip(
+                          icon: Icons.topic_rounded,
+                          label: '$totalTopics Topics',
+                        ),
+                        _StatChip(
+                          icon: Icons.play_circle_rounded,
+                          label: '$totalVideos Videos',
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // ─── Section header ───
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 28, 20, 14),
+                child: Row(
+                  children: [
+                    const Text(
+                      'Your Courses',
+                      style: TextStyle(
+                        color: _navy,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      '${courses.length} available',
+                      style: const TextStyle(
+                        color: Color(0xFF9CA3AF),
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // ─── Course list / empty state ───
+            if (courses.isEmpty)
+              const SliverFillRemaining(
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.school_outlined,
+                          size: 64, color: Color(0xFFD1D5DB)),
+                      SizedBox(height: 16),
+                      Text('No courses yet',
+                          style: TextStyle(
+                              color: Color(0xFF9CA3AF), fontSize: 16)),
+                    ],
+                  ),
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final course = courses[index];
+                      final videoCount = course.topics.fold<int>(
+                          0, (s, t) => s + t.videos.length);
+                      return CourseCard(
+                        courseId: course.id,
+                        title: course.title,
+                        description: course.description,
+                        topicCount: course.topics.length,
+                        videoCount: videoCount,
+                        index: index,
+                        onTap: () {
+                          HapticFeedback.mediumImpact();
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  PlayerPage(courseId: course.id),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    childCount: courses.length,
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
-      body: courses.isEmpty
-          ? const Center(
+    );
+  }
+
+  Widget _buildDrawer(BuildContext context) {
+    final totalCourses = CourseData.courses.length;
+    final totalTopics = CourseData.courses.fold<int>(
+      0, (sum, c) => sum + c.topics.length,
+    );
+    final totalVideos = CourseData.courses.fold<int>(
+      0, (sum, c) => sum + c.topics.fold<int>(0, (s, t) => s + t.videos.length),
+    );
+
+    return Drawer(
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topRight: Radius.circular(20),
+          bottomRight: Radius.circular(20),
+        ),
+      ),
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+              decoration: const BoxDecoration(
+                color: Color(0xFF1F3A70),
+                borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(20),
+                ),
+              ),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.school_outlined,
-                      size: 64, color: Color(0xFF9CA3AF)),
-                  SizedBox(height: 16),
+                  SvgPicture.asset(
+                    'lib/main-site-logo.svg',
+                    height: 36,
+                    colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Thapar EduTube',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
                   Text(
-                    'No courses available',
-                    style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 16),
+                    '$totalCourses courses · $totalTopics topics · $totalVideos videos',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.7),
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
-              itemCount: courses.length,
-              itemBuilder: (context, index) {
-                final course = courses[index];
-                return CourseCard(
-                  courseId: course.id,
-                  title: course.title,
-                  description: course.description,
-                  topicCount: course.topics.length,
-                  onTap: () {
-                    HapticFeedback.mediumImpact();
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => PlayerPage(courseId: course.id),
-                      ),
-                    );
-                  },
-                );
+            ),
+            const SizedBox(height: 8),
+
+            // Menu items
+            _DrawerItem(
+              icon: Icons.home_rounded,
+              label: 'Home',
+              isActive: true,
+              onTap: () => Navigator.pop(context),
+            ),
+            _DrawerItem(
+              icon: Icons.bookmark_outline_rounded,
+              label: 'Saved Videos',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const SavedVideosPage()));
               },
             ),
+            _DrawerItem(
+              icon: Icons.favorite_outline_rounded,
+              label: 'Liked Videos',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const LikedVideosPage()));
+              },
+            ),
+
+            Divider(color: Colors.grey.withValues(alpha: 0.2), indent: 20, endIndent: 20),
+
+            _DrawerItem(
+              icon: Icons.settings_outlined,
+              label: 'Settings',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage()));
+              },
+            ),
+            _DrawerItem(
+              icon: Icons.help_outline_rounded,
+              label: 'Help & Feedback',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpFeedbackPage()));
+              },
+            ),
+
+            const Spacer(),
+
+            // Footer
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+              child: Text(
+                'v1.0.0 · Made for Thapar University',
+                style: TextStyle(
+                  color: Colors.grey.withValues(alpha: 0.5),
+                  fontSize: 11,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showProfileSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Drag handle
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Avatar
+                const CircleAvatar(
+                  radius: 36,
+                  backgroundColor: Color(0xFF1F3A70),
+                  child: Icon(Icons.person_rounded, color: Colors.white, size: 36),
+                ),
+                const SizedBox(height: 14),
+                const Text(
+                  'Student',
+                  style: TextStyle(
+                    color: Color(0xFF0B2E4A),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Thapar University',
+                  style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 13),
+                ),
+                const SizedBox(height: 20),
+
+                // Stats row
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F7FA),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildStat('Courses', '${CourseData.courses.length}'),
+                      Container(width: 1, height: 28, color: const Color(0xFFE5E7EB)),
+                      _buildStat('Topics', '${CourseData.courses.fold<int>(0, (s, c) => s + c.topics.length)}'),
+                      Container(width: 1, height: 28, color: const Color(0xFFE5E7EB)),
+                      _buildStat('Videos', '${CourseData.courses.fold<int>(0, (s, c) => s + c.topics.fold<int>(0, (s2, t) => s2 + t.videos.length))}'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Actions
+                _ProfileOption(
+                  icon: Icons.edit_outlined,
+                  label: 'Edit Profile',
+                  onTap: () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Profile editing coming soon')),
+                    );
+                  },
+                ),
+                _ProfileOption(
+                  icon: Icons.notifications_outlined,
+                  label: 'Notifications',
+                  onTap: () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Notifications coming soon')),
+                    );
+                  },
+                ),
+                _ProfileOption(
+                  icon: Icons.dark_mode_outlined,
+                  label: 'Dark Mode',
+                  trailing: const Text('Soon', style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 12)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Dark mode coming soon')),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStat(String label, String value) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            color: Color(0xFF1F3A70),
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 11),
+        ),
+      ],
     );
   }
 }
 
-/// CourseCard with press animation and visual polish
+/// CourseCard with press animation and new visual layout
 class CourseCard extends StatefulWidget {
   final String courseId;
   final String title;
   final String description;
   final int topicCount;
+  final int videoCount;
+  final int index;
   final VoidCallback onTap;
 
   const CourseCard({
@@ -117,6 +490,8 @@ class CourseCard extends StatefulWidget {
     required this.title,
     required this.description,
     required this.topicCount,
+    required this.videoCount,
+    required this.index,
     required this.onTap,
   });
 
@@ -147,22 +522,36 @@ class _CourseCardState extends State<CourseCard>
     super.dispose();
   }
 
-  void _handleTapDown(TapDownDetails details) {
-    _animationController.forward();
-  }
+  void _handleTapDown(TapDownDetails details) =>
+      _animationController.forward();
 
   void _handleTapUp(TapUpDetails details) {
     _animationController.reverse();
     widget.onTap();
   }
 
-  void _handleTapCancel() {
-    _animationController.reverse();
-  }
+  void _handleTapCancel() => _animationController.reverse();
+
+  static const _accents = [
+    Color(0xFF1F3A70),
+    Color(0xFF0891B2),
+    Color(0xFFDC2626),
+    Color(0xFF2563EB),
+    Color(0xFFB91C1C),
+  ];
+
+  static const _icons = [
+    Icons.cast_for_education_rounded,
+    Icons.data_object_rounded,
+    Icons.code_rounded,
+    Icons.science_rounded,
+    Icons.auto_stories_rounded,
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final accentColor = _getAccentColor(widget.courseId);
+    final accent = _accents[widget.index % _accents.length];
+    final icon = _icons[widget.index % _icons.length];
 
     return GestureDetector(
       onTapDown: _handleTapDown,
@@ -171,120 +560,330 @@ class _CourseCardState extends State<CourseCard>
       child: ScaleTransition(
         scale: _scaleAnimation,
         child: Container(
-          margin: const EdgeInsets.only(bottom: 14),
+          margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: accentColor.withValues(alpha: 0.08),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+                color: accent.withValues(alpha: 0.10),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
               ),
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 4,
-                offset: const Offset(0, 1),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              child: Row(
-                children: [
-                  // Left accent bar
-                  Container(
-                    width: 4,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      color: accentColor,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Accent gradient strip
+              Container(
+                height: 6,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [accent, accent.withValues(alpha: 0.4)],
                   ),
-                  const SizedBox(width: 16),
-                  // Content
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.title,
-                          style: const TextStyle(
-                            color: Color(0xFF0B2E4A),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.2,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          widget.description,
-                          style: const TextStyle(
-                            color: Color(0xFF9CA3AF),
-                            fontSize: 13,
-                            height: 1.3,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 10),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color:
-                                const Color(0xFF22C55E).withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            '${widget.topicCount} ${widget.topicCount == 1 ? 'topic' : 'topics'}',
-                            style: const TextStyle(
-                              color: Color(0xFF16A34A),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 16, 14, 18),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Course icon
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: accent.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(icon, color: accent, size: 24),
+                    ),
+                    const SizedBox(width: 14),
+                    // Details
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Course code badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: accent.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              widget.courseId,
+                              style: TextStyle(
+                                color: accent,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
                             ),
                           ),
+                          const SizedBox(height: 6),
+                          Text(
+                            widget.title,
+                            style: const TextStyle(
+                              color: Color(0xFF0B2E4A),
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            widget.description,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Color(0xFF9CA3AF),
+                              fontSize: 13,
+                              height: 1.3,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          Row(
+                            children: [
+                              _InfoPill(
+                                icon: Icons.topic_rounded,
+                                label:
+                                    '${widget.topicCount} ${widget.topicCount == 1 ? 'topic' : 'topics'}',
+                                color: const Color(0xFF1D4ED8),
+                              ),
+                              const SizedBox(width: 8),
+                              _InfoPill(
+                                icon: Icons.play_circle_outline_rounded,
+                                label:
+                                    '${widget.videoCount} ${widget.videoCount == 1 ? 'video' : 'videos'}',
+                                color: const Color(0xFF0891B2),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Arrow
+                    Padding(
+                      padding: const EdgeInsets.only(top: 10),
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: accent.withValues(alpha: 0.08),
+                          shape: BoxShape.circle,
                         ),
-                      ],
+                        child: Icon(Icons.arrow_forward_rounded,
+                            color: accent, size: 18),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: accentColor.withValues(alpha: 0.08),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      color: accentColor,
-                      size: 14,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
     );
   }
+}
 
-  Color _getAccentColor(String courseId) {
-    // Colors from the same formal navy/blue family
-    final colors = [
-      const Color(0xFF0B2E4A), // Navy (primary)
-      const Color(0xFF1F3A70), // Deep blue
-      const Color(0xFF2E5090), // Medium blue
-      const Color(0xFF3A5FA1), // Sky blue
-      const Color(0xFF1A4D7B), // Ocean blue
-    ];
-    final hash = courseId.hashCode;
-    return colors[hash.abs() % colors.length];
+/// Drawer menu item
+class _DrawerItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _DrawerItem({
+    required this.icon,
+    required this.label,
+    this.isActive = false,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: isActive ? const Color(0xFF1F3A70) : const Color(0xFF6B7280),
+        size: 22,
+      ),
+      title: Text(
+        label,
+        style: TextStyle(
+          color: isActive ? const Color(0xFF1F3A70) : const Color(0xFF374151),
+          fontSize: 14,
+          fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+        ),
+      ),
+      selected: isActive,
+      selectedTileColor: const Color(0xFF1F3A70).withValues(alpha: 0.06),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+      dense: true,
+      visualDensity: const VisualDensity(vertical: 0.5),
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
+    );
+  }
+}
+
+/// Profile bottom sheet option
+class _ProfileOption extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Widget? trailing;
+  final VoidCallback onTap;
+
+  const _ProfileOption({
+    required this.icon,
+    required this.label,
+    this.trailing,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(icon, color: const Color(0xFF6B7280), size: 20),
+      title: Text(
+        label,
+        style: const TextStyle(
+          color: Color(0xFF374151),
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      trailing: trailing ?? const Icon(Icons.chevron_right_rounded, color: Color(0xFFD1D5DB), size: 20),
+      contentPadding: EdgeInsets.zero,
+      dense: true,
+      visualDensity: const VisualDensity(vertical: -1),
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
+    );
+  }
+}
+
+/// Translucent circle button for top bar actions
+class _CircleButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _CircleButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Icon(icon, color: const Color(0xFF0B2E4A), size: 22),
+      ),
+    );
+  }
+}
+
+/// Glass-style stat chip for the hero banner
+class _StatChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _StatChip({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.20),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white, size: 14),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Small info pill showing icon + label for course card metadata
+class _InfoPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  const _InfoPill({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 13),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

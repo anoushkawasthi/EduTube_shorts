@@ -7,6 +7,7 @@ import 'package:edutube_shorts/models/course.dart';
 import 'package:edutube_shorts/models/topic.dart';
 import 'package:edutube_shorts/widgets/video_player_item.dart';
 import 'package:edutube_shorts/utils/video_cache_manager.dart';
+import 'package:edutube_shorts/services/video_state_service.dart';
 
 class PlayerPage extends StatefulWidget {
   final String courseId;
@@ -26,7 +27,7 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
   int _currentVideoIndex = 0;
   bool _showSwipeHint = false;
   Timer? _hintTimer;
-  final Set<String> _likedVideoIds = {};
+  final _stateService = VideoStateService.instance;
 
   // Animation for swipe hint
   late AnimationController _hintAnimController;
@@ -255,7 +256,7 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
       isVisible = videoIndex == 0;
     }
 
-    final isLiked = _likedVideoIds.contains(video.id);
+    final isLiked = _stateService.isLiked(video.id);
 
     return Stack(
       fit: StackFit.expand,
@@ -446,11 +447,8 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
   void _toggleLike(String videoId) {
     HapticFeedback.lightImpact();
     setState(() {
-      if (_likedVideoIds.contains(videoId)) {
-        _likedVideoIds.remove(videoId);
-      } else {
-        _likedVideoIds.add(videoId);
-        // Quick scale pulse
+      _stateService.toggleLike(videoId);
+      if (_stateService.isLiked(videoId)) {
         _likeAnimController
             .forward()
             .then((_) => _likeAnimController.reverse());
@@ -508,6 +506,8 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
+        final currentVideo = course.topics[_currentTopicIndex].videos[_currentVideoIndex];
+        final isSaved = _stateService.isSaved(currentVideo.id);
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -531,12 +531,16 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
               ),
               const SizedBox(height: 16),
               _buildSheetOption(
-                icon: Icons.bookmark_outline_rounded,
-                label: 'Add to Playlist',
+                icon: isSaved ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
+                label: isSaved ? 'Remove from Saved' : 'Save Video',
                 onTap: () {
+                  _stateService.toggleSave(currentVideo.id);
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Added to playlist')),
+                    SnackBar(
+                      content: Text(isSaved ? 'Removed from saved' : 'Video saved'),
+                      duration: const Duration(seconds: 1),
+                    ),
                   );
                 },
               ),
