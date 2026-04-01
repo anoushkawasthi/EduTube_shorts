@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'package:edutube_shorts/models/video.dart';
-import 'package:edutube_shorts/utils/video_cache_manager.dart';
-import 'package:edutube_shorts/utils/video_preloader.dart';
+import 'package:edutube_shorts/utils/video_source_resolver.dart';
 
 class VideoPlayerItem extends StatefulWidget {
   final Video video;
@@ -28,55 +27,42 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
   @override
   void initState() {
     super.initState();
-    _initializeVideoPlayer = _initializeWithCache();
+    _initializeVideoPlayer = _initializeNetwork();
   }
 
-  Future<void> _initializeWithCache() async {
-    try {
-      // Check preloaded controller first
-      final preloaded = VideoPreloader.getPreloadedController(widget.video.id);
-      if (preloaded != null && preloaded.value.isInitialized) {
-        _controller = preloaded;
-        _controller!.setLooping(true);
-        if (mounted && widget.isVisible) {
-          _controller!.play();
+  Future<void> _initializeNetwork() async {
+    final candidates = VideoSourceResolver.playbackUriCandidates(widget.video.url);
+    Object? lastError;
+
+    for (final uri in candidates) {
+      VideoPlayerController? c;
+      try {
+        c = VideoPlayerController.networkUrl(
+          uri,
+          httpHeaders: VideoSourceResolver.playbackHttpHeaders,
+          videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+        );
+        await c.initialize();
+        c.setLooping(true);
+        _controller = c;
+        c = null;
+
+        if (mounted) {
+          setState(() {});
+          if (widget.isVisible) {
+            _controller!.play();
+            _userPausedManually = false;
+          }
         }
         return;
+      } catch (e, _) {
+        lastError = e;
+        debugPrint('Video init failed for $uri: $e');
+        await c?.dispose();
       }
-
-      final cacheManager = VideoCacheManager.instance;
-      final fileInfo = await cacheManager.getFileFromCache(widget.video.url);
-
-      if (fileInfo != null) {
-        _controller = VideoPlayerController.file(fileInfo.file);
-      } else {
-        // Download via cache manager first — it handles redirects (e.g. Google Drive)
-        // that video_player's network URL can't follow.
-        try {
-          final downloaded = await cacheManager.downloadFile(widget.video.url);
-          _controller = VideoPlayerController.file(downloaded.file);
-        } catch (e) {
-          debugPrint('⚠️ Cache download failed, trying direct URL: $e');
-          _controller = VideoPlayerController.networkUrl(
-            Uri.parse(widget.video.url),
-          );
-        }
-      }
-
-      await _controller!.initialize();
-      _controller!.setLooping(true);
-
-      if (mounted) {
-        setState(() {});
-        if (widget.isVisible) {
-          _controller!.play();
-          _userPausedManually = false;
-        }
-      }
-    } catch (error) {
-      debugPrint('Error initializing video: $error');
-      rethrow;
     }
+
+    throw lastError ?? Exception('No playback URL worked');
   }
 
   @override
@@ -99,11 +85,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
 
   @override
   void dispose() {
-    // Only dispose if we own the controller (not preloaded)
-    final preloaded = VideoPreloader.getPreloadedController(widget.video.id);
-    if (_controller != null && _controller != preloaded) {
-      _controller!.dispose();
-    }
+    _controller?.dispose();
     super.dispose();
   }
 
@@ -136,7 +118,6 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Video — fill viewport width, crop height if needed
             SizedBox.expand(
               child: FittedBox(
                 fit: BoxFit.cover,
@@ -148,7 +129,6 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
               ),
             ),
 
-            // Pause overlay
             if (_showPauseIcon)
               Center(
                 child: TweenAnimationBuilder<double>(
@@ -176,7 +156,6 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                 ),
               ),
 
-            // Buffering indicator
             ValueListenableBuilder(
               valueListenable: _controller!,
               builder: (context, value, child) {
@@ -197,7 +176,6 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
               },
             ),
 
-            // Progress bar
             Positioned(
               bottom: 20,
               left: 16,
@@ -254,7 +232,9 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
               TextButton.icon(
                 onPressed: () {
                   setState(() {
-                    _initializeVideoPlayer = _initializeWithCache();
+                    _controller?.dispose();
+                    _controller = null;
+                    _initializeVideoPlayer = _initializeNetwork();
                   });
                 },
                 icon: const Icon(Icons.refresh_rounded, size: 18),
@@ -336,7 +316,6 @@ class _VideoProgressBarState extends State<VideoProgressBar> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Seekable slider
         SizedBox(
           height: 20,
           child: SliderTheme(

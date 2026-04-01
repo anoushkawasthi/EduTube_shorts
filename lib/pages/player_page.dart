@@ -7,7 +7,7 @@ import 'package:edutube_shorts/data/course_data.dart';
 import 'package:edutube_shorts/models/course.dart';
 import 'package:edutube_shorts/models/topic.dart';
 import 'package:edutube_shorts/widgets/video_player_item.dart';
-import 'package:edutube_shorts/utils/video_cache_manager.dart';
+import 'package:edutube_shorts/utils/video_connection_warmup.dart';
 import 'package:edutube_shorts/services/video_state_service.dart';
 
 class PlayerPage extends StatefulWidget {
@@ -102,8 +102,22 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
     if (course.topics.isEmpty) return;
     final firstTopic = course.topics.first;
     for (int i = 1; i < firstTopic.videos.length && i <= 3; i++) {
-      VideoCacheManager.instance.downloadFile(firstTopic.videos[i].url);
+      VideoConnectionWarmup.warmInBackground(firstTopic.videos[i].url);
     }
+    if (course.topics.length > 1) {
+      final second = course.topics[1].videos;
+      if (second.isNotEmpty) {
+        VideoConnectionWarmup.warmInBackground(second.first.url);
+      }
+    }
+  }
+
+  bool _isTopicHorizontallyActive(int topicIndex) {
+    if (!_horizontalController.hasClients) {
+      return topicIndex == 0;
+    }
+    final page = _horizontalController.page ?? 0;
+    return topicIndex == page.round();
   }
 
   @override
@@ -308,13 +322,15 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
   ) {
     final video = topic.videos[videoIndex];
 
+    final topicActive = _isTopicHorizontallyActive(topicIndex);
     bool isVisible = false;
-    if (verticalController.hasClients) {
-      final currentPage = verticalController.page ?? 0;
-      isVisible = (videoIndex - currentPage).abs() < 0.5;
-    } else {
-      // First render — index 0 is visible
-      isVisible = videoIndex == 0;
+    if (topicActive) {
+      if (!verticalController.hasClients) {
+        isVisible = videoIndex == 0;
+      } else {
+        final currentPage = verticalController.page ?? 0;
+        isVisible = (videoIndex - currentPage).abs() < 0.5;
+      }
     }
 
     final isLiked = _stateService.isLiked(video.id);
@@ -934,21 +950,19 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
 
   void _prefetchNextVideo(int topicIndex, int videoIndex) {
     final topic = course.topics[topicIndex];
-    final cache = VideoCacheManager.instance;
     for (int offset = 1; offset <= 2; offset++) {
       final nextIdx = videoIndex + offset;
       if (nextIdx < topic.videos.length) {
-        cache.downloadFile(topic.videos[nextIdx].url);
+        VideoConnectionWarmup.warmInBackground(topic.videos[nextIdx].url);
       }
     }
   }
 
   void _prefetchNextTopicFirstVideo(int topicIndex) {
-    final cache = VideoCacheManager.instance;
     if (topicIndex + 1 < course.topics.length) {
       final nextTopic = course.topics[topicIndex + 1];
       for (int i = 0; i < nextTopic.videos.length && i < 2; i++) {
-        cache.downloadFile(nextTopic.videos[i].url);
+        VideoConnectionWarmup.warmInBackground(nextTopic.videos[i].url);
       }
     }
   }
