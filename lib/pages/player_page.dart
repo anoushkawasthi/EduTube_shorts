@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'dart:async';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:edutube_shorts/data/course_data.dart';
 import 'package:edutube_shorts/models/course.dart';
 import 'package:edutube_shorts/models/topic.dart';
 import 'package:edutube_shorts/widgets/video_player_item.dart';
+import 'package:edutube_shorts/utils/video_cache_manager.dart';
 
 /// PlayerPage displays a TikTok-style nested swipe UI for educational videos
 ///
@@ -47,6 +47,20 @@ class _PlayerPageState extends State<PlayerPage> {
     _verticalControllers = {};
     for (int i = 0; i < course.topics.length; i++) {
       _verticalControllers[i] = PageController();
+    }
+
+    // Pre-cache first few videos of the first topic for instant startup
+    _preloadInitialVideos();
+  }
+
+  /// Pre-cache the next 2-3 videos of the first topic on startup
+  void _preloadInitialVideos() {
+    if (course.topics.isEmpty) return;
+    final firstTopic = course.topics.first;
+    // Preload videos 1-3 (index 1, 2, 3) — current video (0) loads itself
+    for (int i = 1; i < firstTopic.videos.length && i <= 3; i++) {
+      VideoCacheManager.instance.downloadFile(firstTopic.videos[i].url);
+      debugPrint('🚀 Startup preload: ${firstTopic.videos[i].title}');
     }
   }
 
@@ -604,29 +618,34 @@ class _PlayerPageState extends State<PlayerPage> {
     );
   }
 
-  /// N+1 Prefetching: Prefetch next video in current topic (vertical swipe)
+  /// N+1/N+2 Prefetching: Prefetch next 2 videos in current topic (vertical swipe)
   void _prefetchNextVideo(int topicIndex, int videoIndex) {
     final topic = course.topics[topicIndex];
+    final cache = VideoCacheManager.instance;
 
-    // Bounds check: only prefetch if there's a next video
-    if (videoIndex + 1 < topic.videos.length) {
-      final nextVideo = topic.videos[videoIndex + 1];
-      debugPrint('🎬 N+1 Prefetch: ${topic.title} → ${nextVideo.title}');
-      DefaultCacheManager().downloadFile(nextVideo.url);
+    // Prefetch next 2 videos ahead
+    for (int offset = 1; offset <= 2; offset++) {
+      final nextIdx = videoIndex + offset;
+      if (nextIdx < topic.videos.length) {
+        final nextVideo = topic.videos[nextIdx];
+        debugPrint('🎬 N+$offset Prefetch: ${topic.title} → ${nextVideo.title}');
+        cache.downloadFile(nextVideo.url);
+      }
     }
   }
 
   /// M+1 Prefetching: Prefetch first video of next topic (horizontal swipe)
   void _prefetchNextTopicFirstVideo(int topicIndex) {
-    // Bounds check: only prefetch if there's a next topic
+    final cache = VideoCacheManager.instance;
+
+    // Prefetch first 2 videos of next topic
     if (topicIndex + 1 < course.topics.length) {
       final nextTopic = course.topics[topicIndex + 1];
-      if (nextTopic.videos.isNotEmpty) {
-        final nextVideoUrl = nextTopic.videos.first.url;
+      for (int i = 0; i < nextTopic.videos.length && i < 2; i++) {
         debugPrint(
-          '🎬 M+1 Prefetch: ${nextTopic.title} → ${nextTopic.videos.first.title}',
+          '🎬 M+1 Prefetch: ${nextTopic.title} → ${nextTopic.videos[i].title}',
         );
-        DefaultCacheManager().downloadFile(nextVideoUrl);
+        cache.downloadFile(nextTopic.videos[i].url);
       }
     }
   }

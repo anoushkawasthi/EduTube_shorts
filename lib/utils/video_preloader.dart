@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:video_player/video_player.dart';
 import 'package:edutube_shorts/models/video.dart';
+import 'package:edutube_shorts/utils/video_cache_manager.dart';
 
 /// VideoPreloader manages video pre-loading to optimize swipe experience
 /// It pre-initializes controllers for next/previous videos so they're ready
@@ -9,8 +10,8 @@ class VideoPreloader {
   static final Map<String, VideoPlayerController> _preloadedControllers = {};
   static final Set<String> _loadingControllers = {};
 
-  /// Pre-initialize a video controller in the background
-  /// This allows fast playback when the user swipes to it
+  /// Pre-initialize a video controller in the background.
+  /// Uses cached file if available, otherwise streams from network.
   static Future<void> preloadVideo(Video video) async {
     final videoKey = video.id;
 
@@ -23,7 +24,18 @@ class VideoPreloader {
     _loadingControllers.add(videoKey);
 
     try {
-      final controller = VideoPlayerController.networkUrl(Uri.parse(video.url));
+      final cacheManager = VideoCacheManager.instance;
+      final fileInfo = await cacheManager.getFileFromCache(video.url);
+
+      VideoPlayerController controller;
+      if (fileInfo != null) {
+        controller = VideoPlayerController.file(fileInfo.file);
+      } else {
+        controller = VideoPlayerController.networkUrl(Uri.parse(video.url));
+        // Also trigger background cache download
+        cacheManager.downloadFile(video.url);
+      }
+
       await controller.initialize();
       _preloadedControllers[videoKey] = controller;
     } catch (e) {

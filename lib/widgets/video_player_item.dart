@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'dart:io';
 import 'package:edutube_shorts/models/video.dart';
+import 'package:edutube_shorts/utils/video_cache_manager.dart';
 
 /// VideoPlayerItem widget handles the lifecycle of VideoPlayerController
 /// This widget is designed for high-performance swiping scenarios
@@ -37,30 +36,47 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     _initializeVideoPlayer = _initializeWithCache();
   }
 
-  /// Initialize video from cache or download it
+  /// Initialize video: use cached file if available, otherwise stream from
+  /// network immediately (so the user sees video fast) while caching in the
+  /// background for next time.
   Future<void> _initializeWithCache() async {
     try {
-      // Get the video file from cache (or download if not cached)
-      final File videoFile = await DefaultCacheManager().getSingleFile(
-        widget.video.url,
-      );
+      final cacheManager = VideoCacheManager.instance;
 
-      // Initialize controller with the cached file
-      _controller = VideoPlayerController.file(videoFile);
+      // Check if already in cache
+      final fileInfo = await cacheManager.getFileFromCache(widget.video.url);
+
+      if (fileInfo != null) {
+        // Cache HIT → play from local file (instant)
+        debugPrint('📦 Cache HIT: ${widget.video.id}');
+        _controller = VideoPlayerController.file(fileInfo.file);
+      } else {
+        // Cache MISS → stream from network immediately
+        debugPrint('🌐 Cache MISS, streaming: ${widget.video.id}');
+        _controller = VideoPlayerController.networkUrl(
+          Uri.parse(widget.video.url),
+        );
+        // Download to cache in background for next time
+        cacheManager.downloadFile(widget.video.url).then((_) {
+          debugPrint('💾 Background cached: ${widget.video.id}');
+        }).catchError((e) {
+          debugPrint('⚠️ Background cache failed: $e');
+        });
+      }
 
       await _controller.initialize();
+      _controller.setLooping(true);
 
       if (mounted) {
         setState(() {});
         widget.onInitialized?.call();
-        // Auto-play when visible (Instagram-style)
         if (widget.isVisible) {
           _controller.play();
           _userPausedManually = false;
         }
       }
     } catch (error) {
-      debugPrint('Error initializing video from cache: $error');
+      debugPrint('Error initializing video: $error');
       rethrow;
     }
   }
