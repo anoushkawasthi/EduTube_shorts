@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:edutube_shorts/pages/home_page.dart';
+import 'package:edutube_shorts/services/video_state_service.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await VideoStateService.instance.load();
   runApp(const MyApp());
 }
 

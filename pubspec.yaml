@@ -50,6 +50,9 @@ dependencies:
   # URL launcher for opening links
   url_launcher: ^6.3.0
 
+  # Persistent local storage for likes/saves
+  shared_preferences: ^2.2.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

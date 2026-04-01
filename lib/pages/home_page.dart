@@ -12,9 +12,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
-  static const _navy = Color(0xFF0B2E4A);
+  static const _dark = Color(0xFF111827);
   static const _primary = Color(0xFF1F3A70);
-  static const _midBlue = Color(0xFF2E5090);
+  static const _sub = Color(0xFF6B7280);
+  static const _bg = Color(0xFFF9FAFB);
 
   String _greeting() {
     final hour = DateTime.now().hour;
@@ -26,12 +27,9 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final courses = CourseData.courses;
-    final totalTopics = courses.fold<int>(0, (s, c) => s + c.topics.length);
-    final totalVideos = courses.fold<int>(0,
-        (s, c) => s + c.topics.fold<int>(0, (s2, t) => s2 + t.videos.length));
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8),
+      backgroundColor: Colors.white,
       drawer: _buildDrawer(context),
       body: Builder(
         builder: (scaffoldContext) => CustomScrollView(
@@ -47,26 +45,39 @@ class HomePage extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
                   child: Row(
                     children: [
-                      _CircleButton(
-                        icon: Icons.menu_rounded,
+                      GestureDetector(
                         onTap: () {
                           HapticFeedback.lightImpact();
                           Scaffold.of(scaffoldContext).openDrawer();
                         },
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: _bg,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.menu_rounded,
+                              color: _dark, size: 22),
+                        ),
                       ),
                       const Spacer(),
-                      SvgPicture.asset('lib/main-site-logo.svg', height: 28),
+                      SvgPicture.asset('lib/main-site-logo.svg', height: 26),
                       const Spacer(),
                       GestureDetector(
                         onTap: () {
                           HapticFeedback.lightImpact();
                           _showProfileSheet(context);
                         },
-                        child: const CircleAvatar(
-                          radius: 19,
-                          backgroundColor: _primary,
-                          child: Icon(Icons.person_rounded,
-                              color: Colors.white, size: 20),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: _bg,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.person_outlined,
+                              color: _dark, size: 22),
                         ),
                       ),
                     ],
@@ -75,25 +86,14 @@ class HomePage extends StatelessWidget {
               ),
             ),
 
-            // ─── Hero greeting banner ───
+            // ─── Hero section (flat, no gradient) ───
             SliverToBoxAdapter(
               child: Container(
                 margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [_primary, _midBlue],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: _primary.withValues(alpha: 0.30),
-                      blurRadius: 24,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
+                  color: _primary,
+                  borderRadius: BorderRadius.circular(18),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -108,32 +108,30 @@ class HomePage extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     const Text(
-                      'Ready to learn?',
+                      'Ready to study?',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.5,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.3,
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        _StatChip(
-                          icon: Icons.school_rounded,
-                          label: '${courses.length} Courses',
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '${courses.length} courses available',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
                         ),
-                        _StatChip(
-                          icon: Icons.topic_rounded,
-                          label: '$totalTopics Topics',
-                        ),
-                        _StatChip(
-                          icon: Icons.play_circle_rounded,
-                          label: '$totalVideos Videos',
-                        ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
@@ -143,24 +141,33 @@ class HomePage extends StatelessWidget {
             // ─── Section header ───
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 28, 20, 14),
+                padding: const EdgeInsets.fromLTRB(20, 28, 20, 4),
                 child: Row(
                   children: [
                     const Text(
-                      'Your Courses',
+                      'Courses',
                       style: TextStyle(
-                        color: _navy,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.3,
+                        color: _dark,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.2,
                       ),
                     ),
-                    const Spacer(),
-                    Text(
-                      '${courses.length} available',
-                      style: const TextStyle(
-                        color: Color(0xFF9CA3AF),
-                        fontSize: 13,
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: _bg,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '${courses.length}',
+                        style: const TextStyle(
+                          color: _sub,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
@@ -176,18 +183,18 @@ class HomePage extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.school_outlined,
-                          size: 64, color: Color(0xFFD1D5DB)),
-                      SizedBox(height: 16),
+                          size: 48, color: Color(0xFFD1D5DB)),
+                      SizedBox(height: 12),
                       Text('No courses yet',
                           style: TextStyle(
-                              color: Color(0xFF9CA3AF), fontSize: 16)),
+                              color: Color(0xFF9CA3AF), fontSize: 15)),
                     ],
                   ),
                 ),
               )
             else
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
@@ -519,9 +526,12 @@ class CourseCard extends StatefulWidget {
 }
 
 class _CourseCardState extends State<CourseCard>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
+  late AnimationController _entranceController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
@@ -533,11 +543,30 @@ class _CourseCardState extends State<CourseCard>
     _scaleAnimation = Tween<double>(begin: 1.0, end: 0.97).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
+
+    _entranceController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _entranceController,
+      curve: Curves.easeOut,
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.15),
+      end: Offset.zero,
+    ).animate(_fadeAnimation);
+
+    // Stagger delay based on card index
+    Future.delayed(Duration(milliseconds: 120 * widget.index), () {
+      if (mounted) _entranceController.forward();
+    });
   }
 
   @override
   void dispose() {
     _animationController.dispose();
+    _entranceController.dispose();
     super.dispose();
   }
 
@@ -571,48 +600,40 @@ class _CourseCardState extends State<CourseCard>
     final accent = _accents[widget.index % _accents.length];
     final icon = _icons[widget.index % _icons.length];
 
-    return GestureDetector(
-      onTapDown: _handleTapDown,
-      onTapUp: _handleTapUp,
-      onTapCancel: _handleTapCancel,
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 16),
+    return SlideTransition(
+      position: _slideAnimation,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: GestureDetector(
+          onTapDown: _handleTapDown,
+          onTapUp: _handleTapUp,
+          onTapCancel: _handleTapCancel,
+          child: ScaleTransition(
+            scale: _scaleAnimation,
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 14),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: accent.withValues(alpha: 0.10),
-                blurRadius: 20,
-                offset: const Offset(0, 6),
-              ),
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE5E7EB)),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Accent gradient strip
-              Container(
-                height: 6,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [accent, accent.withValues(alpha: 0.4)],
-                  ),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
+          child: IntrinsicHeight(
+            child: Row(
+              children: [
+                // Solid accent left bar
+                Container(
+                  width: 4,
+                  decoration: BoxDecoration(
+                    color: accent,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      bottomLeft: Radius.circular(16),
+                    ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(18, 16, 14, 18),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 16, 14, 16),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -695,22 +716,18 @@ class _CourseCardState extends State<CourseCard>
                     // Arrow
                     Padding(
                       padding: const EdgeInsets.only(top: 10),
-                      child: Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: accent.withValues(alpha: 0.08),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(Icons.arrow_forward_rounded,
-                            color: accent, size: 18),
-                      ),
+                      child: Icon(Icons.chevron_right_rounded,
+                          color: const Color(0xFFD1D5DB), size: 24),
                     ),
                   ],
                 ),
               ),
-            ],
+            ),
+          ],
+        ),
+      ),
           ),
+        ),
         ),
       ),
     );
@@ -797,74 +814,6 @@ class _ProfileOption extends StatelessWidget {
         HapticFeedback.selectionClick();
         onTap();
       },
-    );
-  }
-}
-
-/// Translucent circle button for top bar actions
-class _CircleButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-
-  const _CircleButton({required this.icon, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Icon(icon, color: const Color(0xFF0B2E4A), size: 22),
-      ),
-    );
-  }
-}
-
-/// Glass-style stat chip for the hero banner
-class _StatChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _StatChip({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.20),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: Colors.white, size: 14),
-          const SizedBox(width: 5),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

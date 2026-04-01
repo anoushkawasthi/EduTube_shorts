@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:edutube_shorts/data/course_data.dart';
 import 'package:edutube_shorts/models/course.dart';
@@ -26,6 +27,7 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
   int _currentTopicIndex = 0;
   int _currentVideoIndex = 0;
   bool _showSwipeHint = false;
+  bool _showEntryHint = false;
   Timer? _hintTimer;
   final _stateService = VideoStateService.instance;
 
@@ -73,6 +75,27 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
     );
 
     _preloadInitialVideos();
+    _maybeShowEntryHint();
+  }
+
+  Future<void> _maybeShowEntryHint() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool('player_hint_shown') == true) return;
+    await prefs.setBool('player_hint_shown', true);
+
+    // Small delay so the first video starts loading first
+    await Future.delayed(const Duration(milliseconds: 1200));
+    if (!mounted) return;
+    setState(() => _showEntryHint = true);
+    _hintAnimController.forward(from: 0);
+
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        _hintAnimController.reverse().then((_) {
+          if (mounted) setState(() => _showEntryHint = false);
+        });
+      }
+    });
   }
 
   void _preloadInitialVideos() {
@@ -232,6 +255,44 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
               child: FadeTransition(
                 opacity: _hintFadeAnimation,
                 child: _buildNavigationHint(),
+              ),
+            ),
+          ),
+
+        // First-visit entry hint
+        if (_showEntryHint)
+          Positioned(
+            bottom: 120,
+            left: 0,
+            right: 0,
+            child: FadeTransition(
+              opacity: _hintFadeAnimation,
+              child: Center(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.swipe_rounded,
+                          color: Colors.white70, size: 28),
+                      SizedBox(height: 6),
+                      Text(
+                        'Swipe up for next video\nSwipe left for next topic',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -539,11 +600,31 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
                 onTap: () {
                   _stateService.toggleSave(currentVideo.id);
                   Navigator.pop(context);
+                  final saved = _stateService.isSaved(currentVideo.id);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content:
-                          Text(isSaved ? 'Removed from saved' : 'Video saved'),
-                      duration: const Duration(seconds: 1),
+                      content: Row(
+                        children: [
+                          Icon(
+                            saved
+                                ? Icons.bookmark_rounded
+                                : Icons.bookmark_outline_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(saved ? 'Video saved' : 'Removed from saved'),
+                        ],
+                      ),
+                      duration: const Duration(milliseconds: 1500),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      margin: const EdgeInsets.only(
+                          bottom: 16, left: 16, right: 16),
+                      backgroundColor: saved
+                          ? const Color(0xFF16A34A)
+                          : const Color(0xFF6B7280),
                     ),
                   );
                 },
