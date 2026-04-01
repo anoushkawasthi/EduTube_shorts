@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:video_player/video_player.dart';
 import 'package:edutube_shorts/models/video.dart';
+import 'package:edutube_shorts/utils/video_source_resolver.dart';
 
 /// VideoPreloader manages video pre-loading to optimize swipe experience
 /// It pre-initializes controllers for next/previous videos so they're ready
@@ -23,7 +24,11 @@ class VideoPreloader {
     _loadingControllers.add(videoKey);
 
     try {
-      final controller = VideoPlayerController.networkUrl(Uri.parse(video.url));
+      final uri = VideoSourceResolver.playbackUriCandidates(video.url).first;
+      final controller = VideoPlayerController.networkUrl(
+        uri,
+        httpHeaders: VideoSourceResolver.playbackHttpHeaders,
+      );
       await controller.initialize();
       _preloadedControllers[videoKey] = controller;
     } catch (e) {

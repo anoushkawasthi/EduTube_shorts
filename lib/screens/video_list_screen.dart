@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:edutube_shorts/services/video_service.dart';
 import 'package:edutube_shorts/models/video.dart';
 import 'package:edutube_shorts/widgets/video_player_item.dart';
+import 'package:edutube_shorts/theme/theme.dart';
 
 /// Main screen to display converted videos from backend
 class VideoListScreen extends StatefulWidget {
@@ -95,7 +96,7 @@ class _VideoListScreenState extends State<VideoListScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                  const Icon(Icons.error_outline, color: AppColors.error, size: 48),
                   const SizedBox(height: 16),
                   Text('Error: ${snapshot.error}'),
                   const SizedBox(height: 16),
@@ -120,7 +121,7 @@ class _VideoListScreenState extends State<VideoListScreen> {
                   const Icon(
                     Icons.video_collection,
                     size: 48,
-                    color: Colors.grey,
+                    color: AppColors.gray400,
                   ),
                   const SizedBox(height: 16),
                   const Text('No videos available'),
@@ -196,13 +197,13 @@ class VideoListTile extends StatelessWidget {
           if (video.description.isNotEmpty)
             Text(
               video.description,
-              style: const TextStyle(fontSize: 11, color: Colors.grey),
+              style: const TextStyle(fontSize: 11, color: AppColors.gray500),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
         ],
       ),
-      trailing: const Icon(Icons.play_circle_filled, color: Colors.blue),
+      trailing: const Icon(Icons.play_circle_filled, color: AppColors.primary800),
       onTap: onTap,
     );
   }

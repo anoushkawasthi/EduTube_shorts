@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'dart:async';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:edutube_shorts/utils/video_connection_warmup.dart';
 import 'package:edutube_shorts/data/course_data.dart';
 import 'package:edutube_shorts/models/course.dart';
 import 'package:edutube_shorts/models/topic.dart';
 import 'package:edutube_shorts/widgets/video_player_item.dart';
+import 'package:edutube_shorts/theme/theme.dart';
 
 /// PlayerPage displays a TikTok-style nested swipe UI for educational videos
 ///
@@ -27,7 +28,6 @@ class _PlayerPageState extends State<PlayerPage> {
   late Course course;
   late PageController _horizontalController;
   late Map<int, PageController> _verticalControllers;
-  bool _isVideoPlaying = true; // Track video playing state
   bool _showSwipeHint = false; // Show swipe hint when at last video
   Timer? _hintTimer; // Timer for hiding the hint
   final Set<String> _likedVideoIds = {}; // Track which videos are liked
@@ -48,6 +48,38 @@ class _PlayerPageState extends State<PlayerPage> {
     for (int i = 0; i < course.topics.length; i++) {
       _verticalControllers[i] = PageController();
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      _warmUpInitialVideos();
+    });
+  }
+
+  /// Prime the next clips so the first swipes feel instant (POC).
+  void _warmUpInitialVideos() {
+    if (course.topics.isEmpty) {
+      return;
+    }
+    final first = course.topics.first.videos;
+    for (var i = 1; i < first.length && i < 4; i++) {
+      VideoConnectionWarmup.warmInBackground(first[i].url);
+    }
+    if (course.topics.length > 1) {
+      final second = course.topics[1].videos;
+      if (second.isNotEmpty) {
+        VideoConnectionWarmup.warmInBackground(second.first.url);
+      }
+    }
+  }
+
+  bool _isTopicHorizontallyActive(int topicIndex) {
+    if (!_horizontalController.hasClients) {
+      return topicIndex == 0;
+    }
+    final page = _horizontalController.page ?? 0;
+    return topicIndex == page.round();
   }
 
   @override
@@ -65,7 +97,7 @@ class _PlayerPageState extends State<PlayerPage> {
     return Scaffold(
       backgroundColor: Colors.black, // Keep video player dark
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1F3A70), // Deep blue
+        backgroundColor: AppColors.primary800,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -73,11 +105,7 @@ class _PlayerPageState extends State<PlayerPage> {
         ),
         title: Text(
           course.title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: Theme.of(context).appBarTheme.titleTextStyle,
         ),
       ),
       body: PageView.builder(
@@ -147,7 +175,12 @@ class _PlayerPageState extends State<PlayerPage> {
             },
             itemCount: topic.videos.length,
             itemBuilder: (context, videoIndex) {
-              return _buildVideoPage(topic, videoIndex, verticalController);
+              return _buildVideoPage(
+                topicIndex,
+                topic,
+                videoIndex,
+                verticalController,
+              );
             },
           ),
 
@@ -166,20 +199,25 @@ class _PlayerPageState extends State<PlayerPage> {
 
   /// Builds the video display page with complete UI overlay
   Widget _buildVideoPage(
+    int topicIndex,
     Topic topic,
     int videoIndex,
     PageController verticalController,
   ) {
     final video = topic.videos[videoIndex];
 
-    // Determine if this video is currently visible
+    final topicActive = _isTopicHorizontallyActive(topicIndex);
     bool isVisible = false;
-    if (verticalController.hasClients) {
-      final currentPage = verticalController.page ?? 0;
-      final roundedPage = currentPage.round();
-      isVisible =
-          (videoIndex == roundedPage) ||
-          (videoIndex == currentPage.ceil() && currentPage != roundedPage);
+    if (topicActive) {
+      if (!verticalController.hasClients) {
+        isVisible = videoIndex == 0;
+      } else {
+        final currentPage = verticalController.page ?? 0;
+        final roundedPage = currentPage.round();
+        isVisible =
+            (videoIndex == roundedPage) ||
+            (videoIndex == currentPage.ceil() && currentPage != roundedPage);
+      }
     }
 
     return Stack(
@@ -190,11 +228,6 @@ class _PlayerPageState extends State<PlayerPage> {
           key: ValueKey('${topic.id}_${video.id}'),
           video: video,
           isVisible: isVisible,
-          onPlayingStateChanged: (isPlaying) {
-            setState(() {
-              _isVideoPlaying = isPlaying;
-            });
-          },
         ),
 
         // ============ UI OVERLAY LAYER ============
@@ -348,16 +381,16 @@ class _PlayerPageState extends State<PlayerPage> {
   void _showMoreOptionsSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.grey[900],
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      backgroundColor: AppColors.gray900,
+      shape: RoundedRectangleBorder(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
       builder: (context) {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.md),
               child: Text(
                 'Options',
                 style: Theme.of(
@@ -415,9 +448,9 @@ class _PlayerPageState extends State<PlayerPage> {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.grey[900],
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      backgroundColor: AppColors.gray900,
+      shape: RoundedRectangleBorder(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
       builder: (context) {
         return SingleChildScrollView(
@@ -458,8 +491,8 @@ class _PlayerPageState extends State<PlayerPage> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.circular(12),
+                        color: AppColors.primary800,
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
                       ),
                       child: Text(
                         '${currentTopicIndex + 1}/${course.topics.length}',
@@ -485,7 +518,7 @@ class _PlayerPageState extends State<PlayerPage> {
                 ),
               ),
               ListTile(
-                leading: const Icon(Icons.link, color: Colors.blue),
+                leading: const Icon(Icons.link, color: AppColors.primary600),
                 title: const Text(
                   'GeeksforGeeks',
                   style: TextStyle(color: Colors.white),
@@ -497,7 +530,7 @@ class _PlayerPageState extends State<PlayerPage> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.link, color: Colors.orange),
+                leading: const Icon(Icons.link, color: AppColors.warning),
                 title: const Text(
                   'LeetCode',
                   style: TextStyle(color: Colors.white),
@@ -522,7 +555,7 @@ class _PlayerPageState extends State<PlayerPage> {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          backgroundColor: Colors.grey[850],
+          backgroundColor: AppColors.gray800,
           title: const Text(
             'Open Link?',
             style: TextStyle(color: Colors.white),
@@ -589,12 +622,12 @@ class _PlayerPageState extends State<PlayerPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.swipe_left, color: Color(0xFF3A5FA1), size: 32),
+          Icon(Icons.swipe_left, color: AppColors.primary600, size: 32),
           const SizedBox(height: 8),
           Text(
             'Swipe left to explore more topics',
             style: TextStyle(
-              color: const Color(0xFF3A5FA1),
+              color: AppColors.primary600,
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
@@ -604,29 +637,29 @@ class _PlayerPageState extends State<PlayerPage> {
     );
   }
 
-  /// N+1 Prefetching: Prefetch next video in current topic (vertical swipe)
+  /// N+1: warm next video in current topic (vertical swipe)
   void _prefetchNextVideo(int topicIndex, int videoIndex) {
     final topic = course.topics[topicIndex];
 
-    // Bounds check: only prefetch if there's a next video
     if (videoIndex + 1 < topic.videos.length) {
       final nextVideo = topic.videos[videoIndex + 1];
-      debugPrint('🎬 N+1 Prefetch: ${topic.title} → ${nextVideo.title}');
-      DefaultCacheManager().downloadFile(nextVideo.url);
+      debugPrint('🎬 N+1 warm: ${topic.title} → ${nextVideo.title}');
+      VideoConnectionWarmup.warmInBackground(nextVideo.url);
+    }
+    if (videoIndex + 2 < topic.videos.length) {
+      VideoConnectionWarmup.warmInBackground(topic.videos[videoIndex + 2].url);
     }
   }
 
-  /// M+1 Prefetching: Prefetch first video of next topic (horizontal swipe)
+  /// M+1: warm first video of next topic (horizontal swipe)
   void _prefetchNextTopicFirstVideo(int topicIndex) {
-    // Bounds check: only prefetch if there's a next topic
     if (topicIndex + 1 < course.topics.length) {
       final nextTopic = course.topics[topicIndex + 1];
       if (nextTopic.videos.isNotEmpty) {
-        final nextVideoUrl = nextTopic.videos.first.url;
         debugPrint(
-          '🎬 M+1 Prefetch: ${nextTopic.title} → ${nextTopic.videos.first.title}',
+          '🎬 M+1 warm: ${nextTopic.title} → ${nextTopic.videos.first.title}',
         );
-        DefaultCacheManager().downloadFile(nextVideoUrl);
+        VideoConnectionWarmup.warmInBackground(nextTopic.videos.first.url);
       }
     }
   }
@@ -646,21 +679,17 @@ class TopicsSelectionPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1F3A70),
+        backgroundColor: AppColors.primary800,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Select Topic',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: Theme.of(context).appBarTheme.titleTextStyle,
         ),
       ),
       body: ListView.builder(
@@ -672,16 +701,16 @@ class TopicsSelectionPage extends StatelessWidget {
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             elevation: 2,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
             ),
             child: ListTile(
-              contentPadding: const EdgeInsets.all(16),
+              contentPadding: const EdgeInsets.all(AppSpacing.md),
               leading: Container(
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1F3A70),
-                  borderRadius: BorderRadius.circular(8),
+                  color: AppColors.primary800,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 child: Center(
                   child: Text(
@@ -696,19 +725,19 @@ class TopicsSelectionPage extends StatelessWidget {
               ),
               title: Text(
                 topic.title,
-                style: const TextStyle(
-                  color: Color(0xFF1F3A70),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               subtitle: Text(
                 '${topic.videos.length} videos',
-                style: const TextStyle(color: Colors.grey, fontSize: 14),
+                style: TextStyle(color: AppColors.gray500, fontSize: 14),
               ),
-              trailing: const Icon(
+              trailing: Icon(
                 Icons.arrow_forward_ios,
-                color: Color(0xFF1F3A70),
+                color: Theme.of(context).colorScheme.primary,
                 size: 18,
               ),
               onTap: () {

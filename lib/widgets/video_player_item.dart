@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'dart:io';
 import 'package:edutube_shorts/models/video.dart';
+import 'package:edutube_shorts/theme/theme.dart';
+import 'package:edutube_shorts/utils/video_source_resolver.dart';
 
 /// VideoPlayerItem widget handles the lifecycle of VideoPlayerController
 /// This widget is designed for high-performance swiping scenarios
@@ -25,73 +25,81 @@ class VideoPlayerItem extends StatefulWidget {
 }
 
 class _VideoPlayerItemState extends State<VideoPlayerItem> {
-  late VideoPlayerController _controller;
+  VideoPlayerController? _controller;
   late Future<void> _initializeVideoPlayer;
   bool _userPausedManually = false; // Track if user explicitly paused
 
   @override
   void initState() {
     super.initState();
-
-    // Initialize video using cache manager
-    _initializeVideoPlayer = _initializeWithCache();
+    _initializeVideoPlayer = _initializeNetwork();
   }
 
-  /// Initialize video from cache or download it
-  Future<void> _initializeWithCache() async {
-    try {
-      // Get the video file from cache (or download if not cached)
-      final File videoFile = await DefaultCacheManager().getSingleFile(
-        widget.video.url,
-      );
+  /// Stream from network with Drive-friendly URL fallbacks (no full download first).
+  Future<void> _initializeNetwork() async {
+    final candidates = VideoSourceResolver.playbackUriCandidates(widget.video.url);
+    Object? lastError;
 
-      // Initialize controller with the cached file
-      _controller = VideoPlayerController.file(videoFile);
+    for (final uri in candidates) {
+      VideoPlayerController? c;
+      try {
+        c = VideoPlayerController.networkUrl(
+          uri,
+          httpHeaders: VideoSourceResolver.playbackHttpHeaders,
+          videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+        );
+        await c.initialize();
+        _controller = c;
+        c = null;
 
-      await _controller.initialize();
-
-      if (mounted) {
-        setState(() {});
-        widget.onInitialized?.call();
-        // Auto-play when visible (Instagram-style)
-        if (widget.isVisible) {
-          _controller.play();
-          _userPausedManually = false;
+        if (mounted) {
+          setState(() {});
+          widget.onInitialized?.call();
+          if (widget.isVisible) {
+            _controller!.play();
+            _userPausedManually = false;
+          }
         }
+        return;
+      } catch (e, _) {
+        lastError = e;
+        debugPrint('Video init failed for $uri: $e');
+        await c?.dispose();
       }
-    } catch (error) {
-      debugPrint('Error initializing video from cache: $error');
-      rethrow;
     }
+
+    throw lastError ?? Exception('No playback URL worked');
   }
 
   @override
   void didUpdateWidget(VideoPlayerItem oldWidget) {
     super.didUpdateWidget(oldWidget);
 
+    final ctrl = _controller;
+    if (ctrl == null) {
+      return;
+    }
+
     // Handle visibility changes
     if (widget.isVisible && !oldWidget.isVisible) {
-      // Became visible: resume playback (unless user manually paused)
       debugPrint('🎬 Video ${widget.video.id} became visible');
       if (!_userPausedManually) {
-        // Small delay to ensure video is ready
         Future.delayed(const Duration(milliseconds: 100), () {
-          if (mounted && !_userPausedManually) {
-            _controller.play();
+          if (mounted && !_userPausedManually && _controller != null) {
+            _controller!.play();
             debugPrint('▶️ Auto-playing ${widget.video.id}');
           }
         });
       }
     } else if (!widget.isVisible && oldWidget.isVisible) {
-      // Became hidden: pause playback to save resources
       debugPrint('⏸️ Video ${widget.video.id} became hidden');
-      _controller.pause();
+      ctrl.pause();
     }
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
@@ -100,7 +108,8 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     return FutureBuilder<void>(
       future: _initializeVideoPlayer,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
+        final ctrl = _controller;
+        if (snapshot.connectionState == ConnectionState.done && ctrl != null) {
           return GestureDetector(
             onTap: _togglePlayPause,
             child: Container(
@@ -109,14 +118,14 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                 child: FittedBox(
                   fit: BoxFit.cover,
                   child: SizedBox(
-                    width: _controller.value.size.width,
-                    height: _controller.value.size.height,
+                    width: ctrl.value.size.width,
+                    height: ctrl.value.size.height,
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        VideoPlayer(_controller),
+                        VideoPlayer(ctrl),
                         // Play/pause overlay - only show when user manually paused
-                        if (!_controller.value.isPlaying && _userPausedManually)
+                        if (!ctrl.value.isPlaying && _userPausedManually)
                           Center(
                             child: Container(
                               width: 60,
@@ -137,7 +146,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                           bottom: 20,
                           left: 16,
                           right: 16,
-                          child: VideoProgressBar(_controller),
+                          child: VideoProgressBar(ctrl),
                         ),
                       ],
                     ),
@@ -153,7 +162,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                  const Icon(Icons.error_outline, color: AppColors.error, size: 48),
                   const SizedBox(height: 16),
                   const Text(
                     'Failed to load video',
@@ -185,12 +194,16 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
   }
 
   void _togglePlayPause() {
-    if (_controller.value.isPlaying) {
-      _controller.pause();
+    final ctrl = _controller;
+    if (ctrl == null) {
+      return;
+    }
+    if (ctrl.value.isPlaying) {
+      ctrl.pause();
       _userPausedManually = true; // User explicitly paused
       widget.onPlayingStateChanged?.call(false);
     } else {
-      _controller.play();
+      ctrl.play();
       _userPausedManually = false; // User resumed, not manual pause anymore
       widget.onPlayingStateChanged?.call(true);
     }
@@ -249,7 +262,7 @@ class _VideoProgressBarState extends State<VideoProgressBar> {
             value: percentage,
             minHeight: 3,
             backgroundColor: Colors.white.withValues(alpha: 0.3),
-            valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
+            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accent),
           ),
         ),
         const SizedBox(height: 6),

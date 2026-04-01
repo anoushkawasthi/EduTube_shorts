@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:edutube_shorts/data/course_data.dart';
 import 'package:edutube_shorts/pages/player_page.dart';
+import 'package:edutube_shorts/theme/theme.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 /// HomePage displays a list of available courses
@@ -10,23 +11,19 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(64),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            color: theme.colorScheme.surface,
+            boxShadow: AppShadows.card,
             borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(20),
-              bottomRight: Radius.circular(20),
+              bottomLeft: Radius.circular(AppRadius.xxl),
+              bottomRight: Radius.circular(AppRadius.xxl),
             ),
           ),
           child: AppBar(
@@ -34,7 +31,11 @@ class HomePage extends StatelessWidget {
             elevation: 0,
             automaticallyImplyLeading: false,
             leading: IconButton(
-              icon: const Icon(Icons.menu, color: Color(0xFF0B2E4A), size: 28),
+              icon: Icon(
+                Icons.menu,
+                color: theme.colorScheme.primary,
+                size: 28,
+              ),
               onPressed: () {},
             ),
             centerTitle: true,
@@ -45,9 +46,9 @@ class HomePage extends StatelessWidget {
             ),
             actions: [
               IconButton(
-                icon: const Icon(
+                icon: Icon(
                   Icons.person,
-                  color: Color(0xFF0B2E4A),
+                  color: theme.colorScheme.primary,
                   size: 24,
                 ),
                 onPressed: () {},
@@ -57,7 +58,10 @@ class HomePage extends StatelessWidget {
         ),
       ),
       body: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.md,
+          horizontal: AppSpacing.md,
+        ),
         itemCount: CourseData.courses.length,
         itemBuilder: (context, index) {
           final course = CourseData.courses[index];
@@ -110,11 +114,14 @@ class _CourseCardState extends State<CourseCard>
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 120),
+      duration: AppDurations.interaction,
       vsync: this,
     );
     _scaleAnimation = Tween<double>(begin: 1.0, end: 0.98).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+      CurvedAnimation(
+        parent: _animationController,
+        curve: AppCurves.standard,
+      ),
     );
   }
 
@@ -139,6 +146,8 @@ class _CourseCardState extends State<CourseCard>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return GestureDetector(
       onTapDown: _handleTapDown,
       onTapUp: _handleTapUp,
@@ -146,89 +155,79 @@ class _CourseCardState extends State<CourseCard>
       child: ScaleTransition(
         scale: _scaleAnimation,
         child: Container(
-          margin: const EdgeInsets.only(bottom: 12),
+          margin: const EdgeInsets.only(bottom: AppSpacing.sm + 4),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            borderRadius: BorderRadius.circular(AppRadius.xl),
+            boxShadow: AppShadows.soft,
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppRadius.xl),
             child: Container(
-              color: Colors.white,
+              color: theme.colorScheme.surface,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.sm + 4,
                 ),
                 child: Row(
                   children: [
-                    // Left accent bar with varied colors
                     Container(
                       width: 4,
                       height: 80,
                       decoration: BoxDecoration(
                         color: _getAccentColor(widget.courseId),
-                        borderRadius: BorderRadius.circular(2),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    // Content
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             widget.title,
-                            style: const TextStyle(
-                              color: Color(0xFF0B2E4A),
-                              fontSize: 16,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: theme.colorScheme.primary,
                               fontWeight: FontWeight.bold,
+                              fontSize: 16,
                             ),
                           ),
                           const SizedBox(height: 6),
                           Text(
                             widget.description,
-                            style: const TextStyle(
-                              color: Color(0xFF9CA3AF),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: AppColors.gray400,
                               fontSize: 13,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 10),
-                          // Topic count chip
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 10,
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF22C55E),
+                              color: AppColors.success,
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
                               '${widget.topicCount} topics',
-                              style: const TextStyle(
-                                color: Color(0xFF1F2937),
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                color: Colors.white,
                                 fontSize: 12,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    // Right arrow icon
-                    const Icon(
+                    const SizedBox(width: AppSpacing.sm + 4),
+                    Icon(
                       Icons.arrow_forward_ios,
-                      color: Color(0xFF0B2E4A),
+                      color: theme.colorScheme.primary,
                       size: 18,
                     ),
                   ],
@@ -242,14 +241,7 @@ class _CourseCardState extends State<CourseCard>
   }
 
   Color _getAccentColor(String courseId) {
-    // Colors from the same formal navy/blue family
-    final colors = [
-      const Color(0xFF0B2E4A), // Navy (primary)
-      const Color(0xFF1F3A70), // Deep blue
-      const Color(0xFF2E5090), // Medium blue
-      const Color(0xFF3A5FA1), // Sky blue
-      const Color(0xFF1A4D7B), // Ocean blue
-    ];
+    final colors = AppColors.courseAccentBarColors;
     final hash = courseId.hashCode;
     return colors[hash.abs() % colors.length];
   }

@@ -7,6 +7,6 @@
         <domain includeSubdomains="true">172.17.21.138</domain>
     </domain-config>
     
-    <!-- HTTPS required for all other domains -->
-    <default-config cleartextTrafficPermitted="false" />
+    <!-- Default: HTTPS only (cleartext only where <domain-config> allows it) -->
+    <base-config cleartextTrafficPermitted="false" />
 </network-security-config>

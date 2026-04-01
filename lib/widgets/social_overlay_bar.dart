@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:edutube_shorts/theme/theme.dart';
 
 /// SocialOverlayBar displays Like and Share action buttons on the right side
 class SocialOverlayBar extends StatefulWidget {
@@ -72,7 +73,7 @@ class _SocialOverlayBarState extends State<SocialOverlayBar>
               ),
               child: Icon(
                 _isLiked ? Icons.thumb_up_alt : Icons.thumb_up_alt_outlined,
-                color: _isLiked ? Colors.red : Colors.white,
+                color: _isLiked ? AppColors.accent : Colors.white,
                 size: 28,
               ),
             ),

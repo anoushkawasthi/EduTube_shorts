@@ -36,19 +36,19 @@ dependencies:
   cupertino_icons: ^1.0.8
   
   # Video playback support
-  video_player: ^2.9.0
+  video_player: ^2.10.1
   
   # HTTP client for backend API calls
-  http: ^1.1.0
+  http: ^1.6.0
   
   # SVG support for logo
-  flutter_svg: ^2.0.0
-  
-  # Video caching and prefetching
-  flutter_cache_manager: ^3.3.1
+  flutter_svg: ^2.2.3
   
   # URL launcher for opening links
   url_launcher: ^6.3.0
+
+  # Typography (matches web: Poppins body, Montserrat titles)
+  google_fonts: ^6.3.0
 
 dev_dependencies:
   flutter_test:
@@ -59,7 +59,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
