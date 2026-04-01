@@ -975,7 +975,7 @@ class TopicsSelectionPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.gray50,
+      backgroundColor: context.appColors.scaffoldBg,
       appBar: AppBar(
         backgroundColor: AppColors.primary800,
         elevation: 0,
@@ -986,9 +986,9 @@ class TopicsSelectionPage extends StatelessWidget {
         title: Text('${course.title} — Topics'),
       ),
       body: course.topics.isEmpty
-          ? const Center(
+          ? Center(
               child: Text('No topics available',
-                  style: TextStyle(color: AppColors.gray400)),
+                  style: TextStyle(color: context.appColors.textMuted)),
             )
           : ListView.builder(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -1000,12 +1000,13 @@ class TopicsSelectionPage extends StatelessWidget {
                 return Card(
                   margin: const EdgeInsets.only(bottom: 10),
                   elevation: isCurrent ? 3 : 1,
+                  color: context.appColors.cardBg,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppRadius.lg),
                     side: isCurrent
                         ? const BorderSide(
                             color: AppColors.primary800, width: 2)
-                        : BorderSide.none,
+                        : BorderSide(color: context.appColors.border),
                   ),
                   child: ListTile(
                     contentPadding: const EdgeInsets.all(14),
@@ -1032,8 +1033,8 @@ class TopicsSelectionPage extends StatelessWidget {
                     ),
                     title: Text(
                       topic.title,
-                      style: const TextStyle(
-                        color: AppColors.primary900,
+                      style: TextStyle(
+                        color: context.appColors.heading,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
@@ -1042,8 +1043,8 @@ class TopicsSelectionPage extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
                         '${topic.videos.length} ${topic.videos.length == 1 ? 'video' : 'videos'}',
-                        style: const TextStyle(
-                            color: AppColors.gray400, fontSize: 13),
+                        style: TextStyle(
+                            color: context.appColors.textMuted, fontSize: 13),
                       ),
                     ),
                     trailing: isCurrent
@@ -1063,9 +1064,9 @@ class TopicsSelectionPage extends StatelessWidget {
                               ),
                             ),
                           )
-                        : const Icon(
+                        : Icon(
                             Icons.arrow_forward_ios_rounded,
-                            color: AppColors.gray400,
+                            color: context.appColors.textMuted,
                             size: 16,
                           ),
                     onTap: () {

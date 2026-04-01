@@ -9,7 +9,7 @@ class HelpFeedbackPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.scaffoldBg,
+      backgroundColor: context.appColors.scaffoldBg,
       appBar: AppBar(
         backgroundColor: AppColors.primary800,
         elevation: 0,
@@ -152,10 +152,6 @@ class HelpFeedbackPage extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
       builder: (context) {
         return Padding(
           padding: EdgeInsets.fromLTRB(
@@ -198,9 +194,9 @@ class HelpFeedbackPage extends StatelessWidget {
                 maxLines: 4,
                 decoration: InputDecoration(
                   hintText: 'Describe the issue...',
-                  hintStyle: const TextStyle(color: AppColors.gray300),
+                  hintStyle: TextStyle(color: context.appColors.textHint),
                   filled: true,
-                  fillColor: AppColors.gray50,
+                  fillColor: context.appColors.surface,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadius.lg),
                     borderSide: BorderSide.none,
@@ -283,7 +279,7 @@ class _FaqTileState extends State<_FaqTile> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.appColors.cardBg,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
@@ -312,8 +308,8 @@ class _FaqTileState extends State<_FaqTile> {
                   Expanded(
                     child: Text(
                       widget.question,
-                      style: const TextStyle(
-                        color: AppColors.primary900,
+                      style: TextStyle(
+                        color: context.appColors.heading,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
@@ -322,8 +318,8 @@ class _FaqTileState extends State<_FaqTile> {
                   AnimatedRotation(
                     turns: _expanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 200),
-                    child: const Icon(Icons.expand_more_rounded,
-                        color: AppColors.textMuted, size: 22),
+                    child: Icon(Icons.expand_more_rounded,
+                        color: context.appColors.textMuted, size: 22),
                   ),
                 ],
               ),
@@ -333,8 +329,8 @@ class _FaqTileState extends State<_FaqTile> {
                   padding: const EdgeInsets.only(top: 10, left: 32),
                   child: Text(
                     widget.answer,
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
+                    style: TextStyle(
+                      color: context.appColors.textSecondary,
                       fontSize: 13,
                       height: 1.4,
                     ),
@@ -371,7 +367,7 @@ class _ContactTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.appColors.cardBg,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
@@ -393,18 +389,18 @@ class _ContactTile extends StatelessWidget {
         ),
         title: Text(
           title,
-          style: const TextStyle(
-            color: AppColors.primary900,
+          style: TextStyle(
+            color: context.appColors.heading,
             fontSize: 15,
             fontWeight: FontWeight.w600,
           ),
         ),
         subtitle: Text(
           subtitle,
-          style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+          style: TextStyle(color: context.appColors.textMuted, fontSize: 12),
         ),
         trailing:
-            const Icon(Icons.chevron_right_rounded, color: AppColors.gray300),
+            Icon(Icons.chevron_right_rounded, color: context.appColors.textHint),
         onTap: onTap,
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),

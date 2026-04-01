@@ -97,7 +97,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.scaffoldBg,
+      backgroundColor: context.appColors.scaffoldBg,
       appBar: AppBar(
         backgroundColor: AppColors.primary800,
         elevation: 0,
@@ -267,8 +267,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget _buildLabel(String text) {
     return Text(
       text,
-      style: const TextStyle(
-        color: AppColors.gray700,
+      style: TextStyle(
+        color: context.appColors.textPrimary,
         fontSize: 13,
         fontWeight: FontWeight.w600,
       ),
@@ -281,18 +281,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: AppColors.gray300),
-      prefixIcon: Icon(icon, color: AppColors.gray400, size: 20),
+      hintStyle: TextStyle(color: context.appColors.textHint),
+      prefixIcon: Icon(icon, color: context.appColors.textMuted, size: 20),
       filled: true,
-      fillColor: Colors.white,
+      fillColor: context.appColors.cardBg,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderSide: BorderSide(color: context.appColors.border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderSide: BorderSide(color: context.appColors.border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),

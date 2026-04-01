@@ -81,3 +81,111 @@ abstract final class AppDurations {
 abstract final class AppCurves {
   static const standard = Cubic(0.4, 0, 0.2, 1);
 }
+
+// ── Theme-adaptive colors via ThemeExtension ──
+
+@immutable
+class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
+  const AppColorsExtension({
+    required this.scaffoldBg,
+    required this.cardBg,
+    required this.surface,
+    required this.heading,
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.textMuted,
+    required this.textHint,
+    required this.border,
+    required this.divider,
+  });
+
+  final Color scaffoldBg;
+  final Color cardBg;
+  final Color surface;
+  final Color heading;
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color textMuted;
+  final Color textHint;
+  final Color border;
+  final Color divider;
+
+  // ── Light preset ──
+  static const light = AppColorsExtension(
+    scaffoldBg: AppColors.scaffoldBg,
+    cardBg: Color(0xFFFFFFFF),
+    surface: AppColors.gray50,
+    heading: AppColors.primary900,
+    textPrimary: AppColors.gray900,
+    textSecondary: AppColors.gray500,
+    textMuted: AppColors.gray400,
+    textHint: AppColors.gray300,
+    border: AppColors.border,
+    divider: AppColors.divider,
+  );
+
+  // ── Dark preset (navy-tinted) ──
+  static const dark = AppColorsExtension(
+    scaffoldBg: Color(0xFF0D1117),
+    cardBg: Color(0xFF161B22),
+    surface: Color(0xFF21262D),
+    heading: Color(0xFFE6EDF3),
+    textPrimary: Color(0xFFC9D1D9),
+    textSecondary: Color(0xFF8B949E),
+    textMuted: Color(0xFF6E7681),
+    textHint: Color(0xFF484F58),
+    border: Color(0xFF30363D),
+    divider: Color(0xFF21262D),
+  );
+
+  @override
+  AppColorsExtension copyWith({
+    Color? scaffoldBg,
+    Color? cardBg,
+    Color? surface,
+    Color? heading,
+    Color? textPrimary,
+    Color? textSecondary,
+    Color? textMuted,
+    Color? textHint,
+    Color? border,
+    Color? divider,
+  }) {
+    return AppColorsExtension(
+      scaffoldBg: scaffoldBg ?? this.scaffoldBg,
+      cardBg: cardBg ?? this.cardBg,
+      surface: surface ?? this.surface,
+      heading: heading ?? this.heading,
+      textPrimary: textPrimary ?? this.textPrimary,
+      textSecondary: textSecondary ?? this.textSecondary,
+      textMuted: textMuted ?? this.textMuted,
+      textHint: textHint ?? this.textHint,
+      border: border ?? this.border,
+      divider: divider ?? this.divider,
+    );
+  }
+
+  @override
+  AppColorsExtension lerp(AppColorsExtension? other, double t) {
+    if (other is! AppColorsExtension) return this;
+    return AppColorsExtension(
+      scaffoldBg: Color.lerp(scaffoldBg, other.scaffoldBg, t)!,
+      cardBg: Color.lerp(cardBg, other.cardBg, t)!,
+      surface: Color.lerp(surface, other.surface, t)!,
+      heading: Color.lerp(heading, other.heading, t)!,
+      textPrimary: Color.lerp(textPrimary, other.textPrimary, t)!,
+      textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
+      textMuted: Color.lerp(textMuted, other.textMuted, t)!,
+      textHint: Color.lerp(textHint, other.textHint, t)!,
+      border: Color.lerp(border, other.border, t)!,
+      divider: Color.lerp(divider, other.divider, t)!,
+    );
+  }
+}
+
+/// Quick access to the adaptive color tokens from any widget.
+extension AppThemeX on BuildContext {
+  AppColorsExtension get appColors =>
+      Theme.of(this).extension<AppColorsExtension>()!;
+  bool get isDark => Theme.of(this).brightness == Brightness.dark;
+}

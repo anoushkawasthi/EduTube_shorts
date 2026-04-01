@@ -35,7 +35,7 @@ class _SavedVideosPageState extends State<SavedVideosPage> {
     final videos = _service.savedVideos;
 
     return Scaffold(
-      backgroundColor: AppColors.scaffoldBg,
+      backgroundColor: context.appColors.scaffoldBg,
       appBar: AppBar(
         backgroundColor: AppColors.primary800,
         elevation: 0,
@@ -126,7 +126,7 @@ class _VideoTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.appColors.cardBg,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
@@ -150,8 +150,8 @@ class _VideoTile extends StatelessWidget {
         ),
         title: Text(
           video.title,
-          style: const TextStyle(
-            color: AppColors.primary900,
+          style: TextStyle(
+            color: context.appColors.heading,
             fontSize: 15,
             fontWeight: FontWeight.w600,
           ),
@@ -160,7 +160,7 @@ class _VideoTile extends StatelessWidget {
           video.description,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+          style: TextStyle(color: context.appColors.textMuted, fontSize: 12),
         ),
         trailing: trailing,
       ),

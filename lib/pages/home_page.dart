@@ -7,6 +7,7 @@ import 'package:edutube_shorts/pages/liked_videos_page.dart';
 import 'package:edutube_shorts/pages/settings_page.dart';
 import 'package:edutube_shorts/pages/help_feedback_page.dart';
 import 'package:edutube_shorts/pages/edit_profile_page.dart';
+import 'package:edutube_shorts/services/theme_service.dart';
 import 'package:edutube_shorts/services/user_profile_service.dart';
 import 'package:edutube_shorts/utils/design_tokens.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -26,8 +27,10 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final courses = CourseData.courses;
 
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: AppColors.cardBg,
+      backgroundColor: colors.cardBg,
       drawer: _buildDrawer(context),
       body: Builder(
         builder: (scaffoldContext) => CustomScrollView(
@@ -52,15 +55,22 @@ class HomePage extends StatelessWidget {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: AppColors.gray50,
+                            color: colors.surface,
                             borderRadius: BorderRadius.circular(AppRadius.lg),
                           ),
-                          child: const Icon(Icons.menu_rounded,
-                              color: AppColors.gray900, size: 22),
+                          child: Icon(Icons.menu_rounded,
+                              color: colors.textPrimary, size: 22),
                         ),
                       ),
                       const Spacer(),
-                      SvgPicture.asset('lib/main-site-logo.svg', height: 26),
+                      SvgPicture.asset(
+                        'lib/main-site-logo.svg',
+                        height: 26,
+                        colorFilter: context.isDark
+                            ? const ColorFilter.mode(
+                                Colors.white, BlendMode.srcIn)
+                            : null,
+                      ),
                       const Spacer(),
                       GestureDetector(
                         onTap: () {
@@ -71,11 +81,11 @@ class HomePage extends StatelessWidget {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: AppColors.gray50,
+                            color: colors.surface,
                             borderRadius: BorderRadius.circular(AppRadius.lg),
                           ),
-                          child: const Icon(Icons.person_outlined,
-                              color: AppColors.gray900, size: 22),
+                          child: Icon(Icons.person_outlined,
+                              color: colors.textPrimary, size: 22),
                         ),
                       ),
                     ],
@@ -142,10 +152,10 @@ class HomePage extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(20, 28, 20, 4),
                 child: Row(
                   children: [
-                    const Text(
+                    Text(
                       'Courses',
                       style: TextStyle(
-                        color: AppColors.gray900,
+                        color: colors.textPrimary,
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                         letterSpacing: -0.2,
@@ -156,13 +166,13 @@ class HomePage extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: AppColors.gray50,
+                        color: colors.surface,
                         borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
                       child: Text(
                         '${courses.length}',
-                        style: const TextStyle(
-                          color: AppColors.gray500,
+                        style: TextStyle(
+                          color: colors.textSecondary,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
@@ -238,7 +248,6 @@ class HomePage extends StatelessWidget {
     );
 
     return Drawer(
-      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topRight: Radius.circular(20),
@@ -347,7 +356,7 @@ class HomePage extends StatelessWidget {
               child: Text(
                 'v1.0.0 · Made for Thapar University',
                 style: TextStyle(
-                  color: AppColors.textMuted,
+                  color: context.appColors.textMuted,
                   fontSize: 11,
                 ),
               ),
@@ -362,10 +371,6 @@ class HomePage extends StatelessWidget {
     final profile = UserProfileService.instance;
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
       builder: (context) {
         return SafeArea(
           child: Padding(
@@ -403,8 +408,8 @@ class HomePage extends StatelessWidget {
                 const SizedBox(height: 14),
                 Text(
                   profile.displayName,
-                  style: const TextStyle(
-                    color: AppColors.primary900,
+                  style: TextStyle(
+                    color: context.appColors.heading,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
@@ -413,14 +418,14 @@ class HomePage extends StatelessWidget {
                 Text(
                   profile.isSignedIn ? profile.email : 'Thapar University',
                   style:
-                      const TextStyle(color: AppColors.gray400, fontSize: 13),
+                      TextStyle(color: context.appColors.textMuted, fontSize: 13),
                 ),
                 if (profile.rollNumber.isNotEmpty) ...[
                   const SizedBox(height: 2),
                   Text(
                     'Roll No: ${profile.rollNumber}',
                     style:
-                        const TextStyle(color: AppColors.gray400, fontSize: 12),
+                        TextStyle(color: context.appColors.textMuted, fontSize: 12),
                   ),
                 ],
                 const SizedBox(height: 20),
@@ -430,19 +435,19 @@ class HomePage extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                   decoration: BoxDecoration(
-                    color: AppColors.gray50,
+                    color: context.appColors.surface,
                     borderRadius: BorderRadius.circular(AppRadius.lg),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildStat('Courses', '${CourseData.courses.length}'),
-                      Container(width: 1, height: 28, color: AppColors.border),
+                      _buildStat('Courses', '${CourseData.courses.length}', context),
+                      Container(width: 1, height: 28, color: context.appColors.border),
                       _buildStat('Topics',
-                          '${CourseData.courses.fold<int>(0, (s, c) => s + c.topics.length)}'),
-                      Container(width: 1, height: 28, color: AppColors.border),
+                          '${CourseData.courses.fold<int>(0, (s, c) => s + c.topics.length)}', context),
+                      Container(width: 1, height: 28, color: context.appColors.border),
                       _buildStat('Videos',
-                          '${CourseData.courses.fold<int>(0, (s, c) => s + c.topics.fold<int>(0, (s2, t) => s2 + t.videos.length))}'),
+                          '${CourseData.courses.fold<int>(0, (s, c) => s + c.topics.fold<int>(0, (s2, t) => s2 + t.videos.length))}', context),
                     ],
                   ),
                 ),
@@ -462,15 +467,21 @@ class HomePage extends StatelessWidget {
                   },
                 ),
                 _ProfileOption(
-                  icon: Icons.dark_mode_outlined,
+                  icon: ThemeService.instance.isDark
+                      ? Icons.light_mode_outlined
+                      : Icons.dark_mode_outlined,
                   label: 'Dark Mode',
-                  trailing: const Text('Soon',
-                      style: TextStyle(color: AppColors.gray400, fontSize: 12)),
+                  trailing: Switch.adaptive(
+                    value: ThemeService.instance.isDark,
+                    activeTrackColor: AppColors.primary800,
+                    onChanged: (_) {
+                      Navigator.pop(context);
+                      ThemeService.instance.toggle();
+                    },
+                  ),
                   onTap: () {
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Dark mode coming soon')),
-                    );
+                    ThemeService.instance.toggle();
                   },
                 ),
               ],
@@ -481,7 +492,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildStat(String label, String value) {
+  Widget _buildStat(String label, String value, BuildContext context) {
     return Column(
       children: [
         Text(
@@ -495,7 +506,7 @@ class HomePage extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           label,
-          style: const TextStyle(color: AppColors.gray400, fontSize: 11),
+          style: TextStyle(color: context.appColors.textMuted, fontSize: 11),
         ),
       ],
     );
@@ -614,9 +625,9 @@ class _CourseCardState extends State<CourseCard> with TickerProviderStateMixin {
             child: Container(
               margin: const EdgeInsets.only(bottom: 14),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: context.appColors.cardBg,
                 borderRadius: BorderRadius.circular(AppRadius.xl),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: context.appColors.border),
               ),
               child: IntrinsicHeight(
                 child: Row(
@@ -677,8 +688,8 @@ class _CourseCardState extends State<CourseCard> with TickerProviderStateMixin {
                                   const SizedBox(height: 6),
                                   Text(
                                     widget.title,
-                                    style: const TextStyle(
-                                      color: AppColors.primary900,
+                                    style: TextStyle(
+                                      color: context.appColors.heading,
                                       fontSize: 17,
                                       fontWeight: FontWeight.w700,
                                       letterSpacing: -0.2,
@@ -689,8 +700,8 @@ class _CourseCardState extends State<CourseCard> with TickerProviderStateMixin {
                                     widget.description,
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: AppColors.gray400,
+                                    style: TextStyle(
+                                      color: context.appColors.textMuted,
                                       fontSize: 13,
                                       height: 1.3,
                                     ),
@@ -720,7 +731,7 @@ class _CourseCardState extends State<CourseCard> with TickerProviderStateMixin {
                             Padding(
                               padding: const EdgeInsets.only(top: 10),
                               child: Icon(Icons.chevron_right_rounded,
-                                  color: AppColors.gray300, size: 24),
+                                  color: context.appColors.textHint, size: 24),
                             ),
                           ],
                         ),
@@ -756,13 +767,13 @@ class _DrawerItem extends StatelessWidget {
     return ListTile(
       leading: Icon(
         icon,
-        color: isActive ? AppColors.primary800 : AppColors.gray500,
+        color: isActive ? AppColors.primary800 : context.appColors.textSecondary,
         size: 22,
       ),
       title: Text(
         label,
         style: TextStyle(
-          color: isActive ? AppColors.primary800 : AppColors.gray700,
+          color: isActive ? AppColors.primary800 : context.appColors.textPrimary,
           fontSize: 14,
           fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
         ),
@@ -799,18 +810,18 @@ class _ProfileOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(icon, color: AppColors.gray500, size: 20),
+      leading: Icon(icon, color: context.appColors.textSecondary, size: 20),
       title: Text(
         label,
-        style: const TextStyle(
-          color: AppColors.gray700,
+        style: TextStyle(
+          color: context.appColors.textPrimary,
           fontSize: 14,
           fontWeight: FontWeight.w500,
         ),
       ),
       trailing: trailing ??
-          const Icon(Icons.chevron_right_rounded,
-              color: AppColors.gray300, size: 20),
+          Icon(Icons.chevron_right_rounded,
+              color: context.appColors.textHint, size: 20),
       contentPadding: EdgeInsets.zero,
       dense: true,
       visualDensity: const VisualDensity(vertical: -1),
