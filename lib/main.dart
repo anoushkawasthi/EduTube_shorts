@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:edutube_shorts/pages/home_page.dart';
 import 'package:edutube_shorts/services/video_state_service.dart';
+import 'package:edutube_shorts/utils/video_prefetch_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await VideoStateService.instance.load();
+  // Kick off global prefetch in background immediately after first frame.
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    VideoPrefetchService.prefetchAppWide();
+  });
   runApp(const MyApp());
 }
 
