@@ -399,8 +399,8 @@ class _ContactTile extends StatelessWidget {
           subtitle,
           style: TextStyle(color: context.appColors.textMuted, fontSize: 12),
         ),
-        trailing:
-            Icon(Icons.chevron_right_rounded, color: context.appColors.textHint),
+        trailing: Icon(Icons.chevron_right_rounded,
+            color: context.appColors.textHint),
         onTap: onTap,
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),

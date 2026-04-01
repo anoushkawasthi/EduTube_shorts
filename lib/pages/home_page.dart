@@ -417,15 +417,15 @@ class HomePage extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   profile.isSignedIn ? profile.email : 'Thapar University',
-                  style:
-                      TextStyle(color: context.appColors.textMuted, fontSize: 13),
+                  style: TextStyle(
+                      color: context.appColors.textMuted, fontSize: 13),
                 ),
                 if (profile.rollNumber.isNotEmpty) ...[
                   const SizedBox(height: 2),
                   Text(
                     'Roll No: ${profile.rollNumber}',
-                    style:
-                        TextStyle(color: context.appColors.textMuted, fontSize: 12),
+                    style: TextStyle(
+                        color: context.appColors.textMuted, fontSize: 12),
                   ),
                 ],
                 const SizedBox(height: 20),
@@ -441,13 +441,24 @@ class HomePage extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildStat('Courses', '${CourseData.courses.length}', context),
-                      Container(width: 1, height: 28, color: context.appColors.border),
-                      _buildStat('Topics',
-                          '${CourseData.courses.fold<int>(0, (s, c) => s + c.topics.length)}', context),
-                      Container(width: 1, height: 28, color: context.appColors.border),
-                      _buildStat('Videos',
-                          '${CourseData.courses.fold<int>(0, (s, c) => s + c.topics.fold<int>(0, (s2, t) => s2 + t.videos.length))}', context),
+                      _buildStat(
+                          'Courses', '${CourseData.courses.length}', context),
+                      Container(
+                          width: 1,
+                          height: 28,
+                          color: context.appColors.border),
+                      _buildStat(
+                          'Topics',
+                          '${CourseData.courses.fold<int>(0, (s, c) => s + c.topics.length)}',
+                          context),
+                      Container(
+                          width: 1,
+                          height: 28,
+                          color: context.appColors.border),
+                      _buildStat(
+                          'Videos',
+                          '${CourseData.courses.fold<int>(0, (s, c) => s + c.topics.fold<int>(0, (s2, t) => s2 + t.videos.length))}',
+                          context),
                     ],
                   ),
                 ),
@@ -767,13 +778,15 @@ class _DrawerItem extends StatelessWidget {
     return ListTile(
       leading: Icon(
         icon,
-        color: isActive ? AppColors.primary800 : context.appColors.textSecondary,
+        color:
+            isActive ? AppColors.primary800 : context.appColors.textSecondary,
         size: 22,
       ),
       title: Text(
         label,
         style: TextStyle(
-          color: isActive ? AppColors.primary800 : context.appColors.textPrimary,
+          color:
+              isActive ? AppColors.primary800 : context.appColors.textPrimary,
           fontSize: 14,
           fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
         ),
