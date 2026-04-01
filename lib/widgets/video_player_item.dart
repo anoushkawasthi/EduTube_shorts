@@ -252,9 +252,8 @@ class _VideoProgressBarState extends State<VideoProgressBar> {
   Widget build(BuildContext context) {
     final position = _displayedDuration.inSeconds;
     final duration = widget.controller.value.duration.inSeconds;
-    final percentage = duration > 0
-        ? (position / duration).clamp(0.0, 1.0)
-        : 0.0;
+    final percentage =
+        duration > 0 ? (position / duration).clamp(0.0, 1.0) : 0.0;
 
     return Column(
       mainAxisSize: MainAxisSize.min,

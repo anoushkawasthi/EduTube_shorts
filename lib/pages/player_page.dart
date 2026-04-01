@@ -191,8 +191,7 @@ class _PlayerPageState extends State<PlayerPage> {
     if (verticalController.hasClients) {
       final currentPage = verticalController.page ?? 0;
       final roundedPage = currentPage.round();
-      isVisible =
-          (videoIndex == roundedPage) ||
+      isVisible = (videoIndex == roundedPage) ||
           (videoIndex == currentPage.ceil() && currentPage != roundedPage);
     }
 
@@ -628,7 +627,8 @@ class _PlayerPageState extends State<PlayerPage> {
       final nextIdx = videoIndex + offset;
       if (nextIdx < topic.videos.length) {
         final nextVideo = topic.videos[nextIdx];
-        debugPrint('🎬 N+$offset Prefetch: ${topic.title} → ${nextVideo.title}');
+        debugPrint(
+            '🎬 N+$offset Prefetch: ${topic.title} → ${nextVideo.title}');
         cache.downloadFile(nextVideo.url);
       }
     }
