@@ -7,7 +7,7 @@ import 'package:edutube_shorts/data/course_data.dart';
 import 'package:edutube_shorts/models/course.dart';
 import 'package:edutube_shorts/models/topic.dart';
 import 'package:edutube_shorts/widgets/video_player_item.dart';
-import 'package:edutube_shorts/utils/video_connection_warmup.dart';
+import 'package:edutube_shorts/utils/video_cache_manager.dart';
 import 'package:edutube_shorts/services/video_state_service.dart';
 
 class PlayerPage extends StatefulWidget {
@@ -100,14 +100,17 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
 
   void _preloadInitialVideos() {
     if (course.topics.isEmpty) return;
+    final cache = VideoCacheManager.instance;
+    // Pre-download the next 3 videos of the first topic into cache.
     final firstTopic = course.topics.first;
     for (int i = 1; i < firstTopic.videos.length && i <= 3; i++) {
-      VideoConnectionWarmup.warmInBackground(firstTopic.videos[i].url);
+      cache.downloadFile(firstTopic.videos[i].url);
     }
+    // Also pre-download the first video of the second topic.
     if (course.topics.length > 1) {
       final second = course.topics[1].videos;
       if (second.isNotEmpty) {
-        VideoConnectionWarmup.warmInBackground(second.first.url);
+        cache.downloadFile(second.first.url);
       }
     }
   }
@@ -950,19 +953,22 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
 
   void _prefetchNextVideo(int topicIndex, int videoIndex) {
     final topic = course.topics[topicIndex];
+    final cache = VideoCacheManager.instance;
+    // Download the next 2 videos into cache while the user watches the current one.
     for (int offset = 1; offset <= 2; offset++) {
       final nextIdx = videoIndex + offset;
       if (nextIdx < topic.videos.length) {
-        VideoConnectionWarmup.warmInBackground(topic.videos[nextIdx].url);
+        cache.downloadFile(topic.videos[nextIdx].url);
       }
     }
   }
 
   void _prefetchNextTopicFirstVideo(int topicIndex) {
+    final cache = VideoCacheManager.instance;
     if (topicIndex + 1 < course.topics.length) {
       final nextTopic = course.topics[topicIndex + 1];
       for (int i = 0; i < nextTopic.videos.length && i < 2; i++) {
-        VideoConnectionWarmup.warmInBackground(nextTopic.videos[i].url);
+        cache.downloadFile(nextTopic.videos[i].url);
       }
     }
   }

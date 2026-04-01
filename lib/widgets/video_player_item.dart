@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'package:edutube_shorts/models/video.dart';
+import 'package:edutube_shorts/utils/video_cache_manager.dart';
 import 'package:edutube_shorts/utils/video_source_resolver.dart';
 
 class VideoPlayerItem extends StatefulWidget {
@@ -27,59 +30,73 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
   @override
   void initState() {
     super.initState();
-    _initializeVideoPlayer = _initializeNetwork();
+    _initializeVideoPlayer = _initializeCachedOrStream();
   }
 
-  Future<void> _initializeNetwork() async {
-    final candidates = VideoSourceResolver.playbackUriCandidates(widget.video.url);
-    Object? lastError;
+  /// Strategy:
+  ///   1. Cached on disk (from a previous download) → play from file instantly.
+  ///   2. Not cached → stream immediately via network, AND trigger background
+  ///      download so subsequent plays are instant.
+  ///   3. If streaming also fails → rethrow for error UI.
+  Future<void> _initializeCachedOrStream() async {
+    final cacheManager = VideoCacheManager.instance;
+    VideoPlayerController? c;
 
-    for (final uri in candidates) {
-      VideoPlayerController? c;
-      try {
+    try {
+      final fileInfo = await cacheManager.getFileFromCache(widget.video.url);
+
+      if (fileInfo != null) {
+        // Already on disk — instant.
+        c = VideoPlayerController.file(fileInfo.file);
+        debugPrint('📦 Cache hit: ${widget.video.id}');
+      } else {
+        // Not cached yet — start streaming immediately.
+        final uri = VideoSourceResolver.playbackUriCandidates(widget.video.url).first;
         c = VideoPlayerController.networkUrl(
           uri,
           httpHeaders: VideoSourceResolver.playbackHttpHeaders,
           videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
         );
-        await c.initialize();
-        c.setLooping(true);
-        _controller = c;
-        c = null;
-
-        if (mounted) {
-          setState(() {});
-          if (widget.isVisible) {
-            _controller!.play();
-            _userPausedManually = false;
-          }
-        }
-        return;
-      } catch (e, _) {
-        lastError = e;
-        debugPrint('Video init failed for $uri: $e');
-        await c?.dispose();
+        debugPrint('🌐 Streaming + caching: ${widget.video.id}');
+        // Background download so next play is a cache hit.
+        unawaited(cacheManager.downloadFile(widget.video.url));
       }
-    }
 
-    throw lastError ?? Exception('No playback URL worked');
+      await c.initialize();
+      c.setLooping(true);
+      _controller = c;
+      c = null;
+
+      if (mounted) {
+        setState(() {});
+        if (widget.isVisible) {
+          _controller!.play();
+          _userPausedManually = false;
+        }
+      }
+    } catch (e) {
+      await c?.dispose();
+      debugPrint('❌ Init failed for ${widget.video.id}: $e');
+      rethrow;
+    }
   }
 
   @override
   void didUpdateWidget(VideoPlayerItem oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_controller == null) return;
+    final ctrl = _controller;
+    if (ctrl == null) return;
 
     if (widget.isVisible && !oldWidget.isVisible) {
       if (!_userPausedManually) {
-        Future.delayed(const Duration(milliseconds: 100), () {
+        Future.delayed(const Duration(milliseconds: 50), () {
           if (mounted && !_userPausedManually && _controller != null) {
             _controller!.play();
           }
         });
       }
     } else if (!widget.isVisible && oldWidget.isVisible) {
-      _controller?.pause();
+      ctrl.pause();
     }
   }
 
@@ -134,12 +151,10 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                 child: TweenAnimationBuilder<double>(
                   tween: Tween(begin: 0.0, end: 1.0),
                   duration: const Duration(milliseconds: 150),
-                  builder: (context, value, child) {
-                    return Transform.scale(
-                      scale: 0.8 + (0.2 * value),
-                      child: Opacity(opacity: value, child: child),
-                    );
-                  },
+                  builder: (context, value, child) => Transform.scale(
+                    scale: 0.8 + (0.2 * value),
+                    child: Opacity(opacity: value, child: child),
+                  ),
                   child: Container(
                     width: 56,
                     height: 56,
@@ -166,8 +181,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                       height: 36,
                       child: CircularProgressIndicator(
                         strokeWidth: 2.5,
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(Colors.white70),
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
                       ),
                     ),
                   );
@@ -213,8 +227,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.cloud_off_rounded,
-                  color: Colors.white38, size: 48),
+              const Icon(Icons.cloud_off_rounded, color: Colors.white38, size: 48),
               const SizedBox(height: 16),
               const Text(
                 'Could not load video',
@@ -234,7 +247,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                   setState(() {
                     _controller?.dispose();
                     _controller = null;
-                    _initializeVideoPlayer = _initializeNetwork();
+                    _initializeVideoPlayer = _initializeCachedOrStream();
                   });
                 },
                 icon: const Icon(Icons.refresh_rounded, size: 18),
@@ -242,8 +255,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.white70,
                   side: const BorderSide(color: Colors.white24),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 ),
               ),
             ],
@@ -330,17 +342,13 @@ class _VideoProgressBarState extends State<VideoProgressBar> {
             ),
             child: Slider(
               value: progress,
-              onChangeStart: (val) {
-                _isDragging = true;
-              },
-              onChanged: (val) {
-                setState(() => _dragValue = val);
-              },
+              onChangeStart: (_) => _isDragging = true,
+              onChanged: (val) => setState(() => _dragValue = val),
               onChangeEnd: (val) {
                 _isDragging = false;
-                final seekTo =
-                    Duration(milliseconds: (val * durationMs).toInt());
-                widget.controller.seekTo(seekTo);
+                widget.controller.seekTo(
+                  Duration(milliseconds: (val * durationMs).toInt()),
+                );
                 HapticFeedback.selectionClick();
               },
             ),
