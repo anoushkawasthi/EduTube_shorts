@@ -53,6 +53,9 @@ dependencies:
   # Persistent local storage for likes/saves
   shared_preferences: ^2.2.2
 
+  # Google Fonts (Poppins + Montserrat per website design system)
+  google_fonts: ^6.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

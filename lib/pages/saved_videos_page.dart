@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:edutube_shorts/services/video_state_service.dart';
 import 'package:edutube_shorts/models/video.dart';
+import 'package:edutube_shorts/utils/design_tokens.dart';
 
 class SavedVideosPage extends StatefulWidget {
   const SavedVideosPage({super.key});
@@ -34,9 +35,9 @@ class _SavedVideosPageState extends State<SavedVideosPage> {
     final videos = _service.savedVideos;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8),
+      backgroundColor: AppColors.scaffoldBg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1F3A70),
+        backgroundColor: AppColors.primary800,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
@@ -73,15 +74,16 @@ class _SavedVideosPageState extends State<SavedVideosPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.bookmark_outline_rounded,
-                      size: 64, color: Color(0xFFD1D5DB)),
+                      size: 64, color: AppColors.gray300),
                   SizedBox(height: 16),
                   Text('No saved videos yet',
-                      style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 16)),
+                      style:
+                          TextStyle(color: AppColors.textMuted, fontSize: 16)),
                   SizedBox(height: 8),
                   Text(
                     'Tap the bookmark icon on a video\nto save it here',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Color(0xFFD1D5DB), fontSize: 13),
+                    style: TextStyle(color: AppColors.gray300, fontSize: 13),
                   ),
                 ],
               ),
@@ -95,7 +97,7 @@ class _SavedVideosPageState extends State<SavedVideosPage> {
                   video: video,
                   trailing: IconButton(
                     icon: const Icon(Icons.bookmark_remove_rounded,
-                        color: Color(0xFFDC2626)),
+                        color: AppColors.accent600),
                     onPressed: () {
                       HapticFeedback.lightImpact();
                       _service.toggleSave(video.id);
@@ -140,16 +142,16 @@ class _VideoTile extends StatelessWidget {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: const Color(0xFF1F3A70).withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(12),
+            color: AppColors.primary800.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
           child: const Icon(Icons.play_circle_rounded,
-              color: Color(0xFF1F3A70), size: 24),
+              color: AppColors.primary800, size: 24),
         ),
         title: Text(
           video.title,
           style: const TextStyle(
-            color: Color(0xFF0B2E4A),
+            color: AppColors.primary900,
             fontSize: 15,
             fontWeight: FontWeight.w600,
           ),
@@ -158,7 +160,7 @@ class _VideoTile extends StatelessWidget {
           video.description,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 12),
+          style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
         ),
         trailing: trailing,
       ),

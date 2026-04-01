@@ -9,6 +9,7 @@ import 'package:edutube_shorts/models/topic.dart';
 import 'package:edutube_shorts/widgets/video_player_item.dart';
 import 'package:edutube_shorts/utils/video_prefetch_service.dart';
 import 'package:edutube_shorts/services/video_state_service.dart';
+import 'package:edutube_shorts/utils/design_tokens.dart';
 
 class PlayerPage extends StatefulWidget {
   final String courseId;
@@ -181,7 +182,7 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: const Color(0xFF1F3A70),
+      backgroundColor: AppColors.primary800,
       elevation: 0,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
@@ -472,7 +473,7 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
                 icon: isLiked
                     ? Icons.favorite_rounded
                     : Icons.favorite_border_rounded,
-                color: isLiked ? Colors.redAccent : Colors.white,
+                color: isLiked ? AppColors.accent600 : Colors.white,
                 onTap: () => _toggleLike(video.id),
               ),
               const SizedBox(height: 18),
@@ -585,9 +586,10 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
   void _showMoreOptionsSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1A1A2E),
+      backgroundColor: AppColors.primary900,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
       ),
       builder: (context) {
         final currentVideo =
@@ -642,12 +644,11 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
                       duration: const Duration(milliseconds: 1500),
                       behavior: SnackBarBehavior.floating,
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(AppRadius.lg)),
                       margin: const EdgeInsets.only(
                           bottom: 16, left: 16, right: 16),
-                      backgroundColor: saved
-                          ? const Color(0xFF16A34A)
-                          : const Color(0xFF6B7280),
+                      backgroundColor:
+                          saved ? AppColors.success : AppColors.gray500,
                     ),
                   );
                 },
@@ -682,8 +683,9 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: AppColors.primary900,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.xl)),
         title:
             const Text('Thapar EduTube', style: TextStyle(color: Colors.white)),
         content: const Text(
@@ -724,9 +726,10 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1A1A2E),
+      backgroundColor: AppColors.primary900,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
       ),
       builder: (context) {
         return SafeArea(
@@ -779,8 +782,8 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1F3A70),
-                          borderRadius: BorderRadius.circular(12),
+                          color: AppColors.primary800,
+                          borderRadius: BorderRadius.circular(AppRadius.lg),
                         ),
                         child: Text(
                           'Topic ${_currentTopicIndex + 1}/${course.topics.length}',
@@ -807,7 +810,7 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
                       minHeight: 4,
                       backgroundColor: Colors.white12,
                       valueColor: const AlwaysStoppedAnimation<Color>(
-                          Color(0xFF22C55E)),
+                          AppColors.success),
                     ),
                   ),
                 ),
@@ -829,13 +832,13 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
                 _buildReferenceLink(
                   icon: Icons.code_rounded,
                   label: 'GeeksforGeeks',
-                  color: const Color(0xFF2F8D46),
+                  color: AppColors.success,
                   url: 'https://www.geeksforgeeks.org',
                 ),
                 _buildReferenceLink(
                   icon: Icons.terminal_rounded,
                   label: 'LeetCode',
-                  color: Colors.orange,
+                  color: AppColors.warning,
                   url: 'https://leetcode.com/',
                 ),
                 const SizedBox(height: 20),
@@ -881,9 +884,9 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF1A1A2E),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: AppColors.primary900,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadius.xl)),
           title:
               const Text('Open Link?', style: TextStyle(color: Colors.white)),
           content: Text(
@@ -954,7 +957,6 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
       ),
     );
   }
-
 }
 
 /// TopicsSelectionPage with current topic indicator
@@ -973,9 +975,9 @@ class TopicsSelectionPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: AppColors.gray50,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1F3A70),
+        backgroundColor: AppColors.primary800,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
@@ -986,7 +988,7 @@ class TopicsSelectionPage extends StatelessWidget {
       body: course.topics.isEmpty
           ? const Center(
               child: Text('No topics available',
-                  style: TextStyle(color: Color(0xFF9CA3AF))),
+                  style: TextStyle(color: AppColors.gray400)),
             )
           : ListView.builder(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -999,9 +1001,10 @@ class TopicsSelectionPage extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 10),
                   elevation: isCurrent ? 3 : 1,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
                     side: isCurrent
-                        ? const BorderSide(color: Color(0xFF1F3A70), width: 2)
+                        ? const BorderSide(
+                            color: AppColors.primary800, width: 2)
                         : BorderSide.none,
                   ),
                   child: ListTile(
@@ -1011,17 +1014,16 @@ class TopicsSelectionPage extends StatelessWidget {
                       height: 44,
                       decoration: BoxDecoration(
                         color: isCurrent
-                            ? const Color(0xFF1F3A70)
-                            : const Color(0xFF1F3A70).withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(10),
+                            ? AppColors.primary800
+                            : AppColors.primary800.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
                       child: Center(
                         child: Text(
                           '${index + 1}',
                           style: TextStyle(
-                            color: isCurrent
-                                ? Colors.white
-                                : const Color(0xFF1F3A70),
+                            color:
+                                isCurrent ? Colors.white : AppColors.primary800,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
@@ -1031,7 +1033,7 @@ class TopicsSelectionPage extends StatelessWidget {
                     title: Text(
                       topic.title,
                       style: const TextStyle(
-                        color: Color(0xFF0B2E4A),
+                        color: AppColors.primary900,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
@@ -1041,7 +1043,7 @@ class TopicsSelectionPage extends StatelessWidget {
                       child: Text(
                         '${topic.videos.length} ${topic.videos.length == 1 ? 'video' : 'videos'}',
                         style: const TextStyle(
-                            color: Color(0xFF9CA3AF), fontSize: 13),
+                            color: AppColors.gray400, fontSize: 13),
                       ),
                     ),
                     trailing: isCurrent
@@ -1049,14 +1051,13 @@ class TopicsSelectionPage extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF22C55E)
-                                  .withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(8),
+                              color: AppColors.success.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                             ),
                             child: const Text(
                               'Current',
                               style: TextStyle(
-                                color: Color(0xFF16A34A),
+                                color: AppColors.success,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -1064,7 +1065,7 @@ class TopicsSelectionPage extends StatelessWidget {
                           )
                         : const Icon(
                             Icons.arrow_forward_ios_rounded,
-                            color: Color(0xFF9CA3AF),
+                            color: AppColors.gray400,
                             size: 16,
                           ),
                     onTap: () {

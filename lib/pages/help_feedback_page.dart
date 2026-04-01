@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:edutube_shorts/utils/design_tokens.dart';
 
 class HelpFeedbackPage extends StatelessWidget {
   const HelpFeedbackPage({super.key});
 
-  static const _primary = Color(0xFF1F3A70);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8),
+      backgroundColor: AppColors.scaffoldBg,
       appBar: AppBar(
-        backgroundColor: _primary,
+        backgroundColor: AppColors.primary800,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
@@ -94,12 +93,8 @@ class HelpFeedbackPage extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [_primary, Color(0xFF2E5090)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
+                color: AppColors.primary800,
+                borderRadius: BorderRadius.circular(AppRadius.xl),
               ),
               child: Column(
                 children: [
@@ -187,7 +182,7 @@ class HelpFeedbackPage extends StatelessWidget {
               const Text(
                 'Report a Bug',
                 style: TextStyle(
-                  color: Color(0xFF0B2E4A),
+                  color: AppColors.primary900,
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                 ),
@@ -195,7 +190,7 @@ class HelpFeedbackPage extends StatelessWidget {
               const SizedBox(height: 6),
               const Text(
                 'Describe what went wrong and we\'ll look into it.',
-                style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 13),
+                style: TextStyle(color: AppColors.textMuted, fontSize: 13),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -203,16 +198,17 @@ class HelpFeedbackPage extends StatelessWidget {
                 maxLines: 4,
                 decoration: InputDecoration(
                   hintText: 'Describe the issue...',
-                  hintStyle: const TextStyle(color: Color(0xFFD1D5DB)),
+                  hintStyle: const TextStyle(color: AppColors.gray300),
                   filled: true,
-                  fillColor: const Color(0xFFF5F7FA),
+                  fillColor: AppColors.gray50,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
                     borderSide: BorderSide.none,
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: _primary, width: 1.5),
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                    borderSide: const BorderSide(
+                        color: AppColors.primary800, width: 1.5),
                   ),
                 ),
               ),
@@ -231,9 +227,9 @@ class HelpFeedbackPage extends StatelessWidget {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _primary,
+                    backgroundColor: AppColors.primary800,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(AppRadius.lg)),
                   ),
                   child: const Text('Submit Report',
                       style: TextStyle(
@@ -259,7 +255,7 @@ class _SectionHeader extends StatelessWidget {
       child: Text(
         label.toUpperCase(),
         style: const TextStyle(
-          color: Color(0xFF1F3A70),
+          color: AppColors.primary800,
           fontSize: 12,
           fontWeight: FontWeight.w700,
           letterSpacing: 1.0,
@@ -311,13 +307,13 @@ class _FaqTileState extends State<_FaqTile> {
               Row(
                 children: [
                   const Icon(Icons.help_outline_rounded,
-                      color: Color(0xFF1F3A70), size: 20),
+                      color: AppColors.primary800, size: 20),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       widget.question,
                       style: const TextStyle(
-                        color: Color(0xFF0B2E4A),
+                        color: AppColors.primary900,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
@@ -327,7 +323,7 @@ class _FaqTileState extends State<_FaqTile> {
                     turns: _expanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 200),
                     child: const Icon(Icons.expand_more_rounded,
-                        color: Color(0xFF9CA3AF), size: 22),
+                        color: AppColors.textMuted, size: 22),
                   ),
                 ],
               ),
@@ -338,7 +334,7 @@ class _FaqTileState extends State<_FaqTile> {
                   child: Text(
                     widget.answer,
                     style: const TextStyle(
-                      color: Color(0xFF6B7280),
+                      color: AppColors.textSecondary,
                       fontSize: 13,
                       height: 1.4,
                     ),
@@ -390,25 +386,25 @@ class _ContactTile extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: const Color(0xFF1F3A70).withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(10),
+            color: AppColors.primary800.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
-          child: Icon(icon, color: const Color(0xFF1F3A70), size: 20),
+          child: Icon(icon, color: AppColors.primary800, size: 20),
         ),
         title: Text(
           title,
           style: const TextStyle(
-            color: Color(0xFF0B2E4A),
+            color: AppColors.primary900,
             fontSize: 15,
             fontWeight: FontWeight.w600,
           ),
         ),
         subtitle: Text(
           subtitle,
-          style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 12),
+          style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
         ),
         trailing:
-            const Icon(Icons.chevron_right_rounded, color: Color(0xFFD1D5DB)),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.gray300),
         onTap: onTap,
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),

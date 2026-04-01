@@ -6,16 +6,14 @@ import 'package:edutube_shorts/pages/saved_videos_page.dart';
 import 'package:edutube_shorts/pages/liked_videos_page.dart';
 import 'package:edutube_shorts/pages/settings_page.dart';
 import 'package:edutube_shorts/pages/help_feedback_page.dart';
+import 'package:edutube_shorts/pages/edit_profile_page.dart';
+import 'package:edutube_shorts/services/user_profile_service.dart';
+import 'package:edutube_shorts/utils/design_tokens.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 /// HomePage displays a list of available courses
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
-
-  static const _dark = Color(0xFF111827);
-  static const _primary = Color(0xFF1F3A70);
-  static const _sub = Color(0xFF6B7280);
-  static const _bg = Color(0xFFF9FAFB);
 
   String _greeting() {
     final hour = DateTime.now().hour;
@@ -29,7 +27,7 @@ class HomePage extends StatelessWidget {
     final courses = CourseData.courses;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.cardBg,
       drawer: _buildDrawer(context),
       body: Builder(
         builder: (scaffoldContext) => CustomScrollView(
@@ -54,11 +52,11 @@ class HomePage extends StatelessWidget {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: _bg,
-                            borderRadius: BorderRadius.circular(12),
+                            color: AppColors.gray50,
+                            borderRadius: BorderRadius.circular(AppRadius.lg),
                           ),
                           child: const Icon(Icons.menu_rounded,
-                              color: _dark, size: 22),
+                              color: AppColors.gray900, size: 22),
                         ),
                       ),
                       const Spacer(),
@@ -73,11 +71,11 @@ class HomePage extends StatelessWidget {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: _bg,
-                            borderRadius: BorderRadius.circular(12),
+                            color: AppColors.gray50,
+                            borderRadius: BorderRadius.circular(AppRadius.lg),
                           ),
                           child: const Icon(Icons.person_outlined,
-                              color: _dark, size: 22),
+                              color: AppColors.gray900, size: 22),
                         ),
                       ),
                     ],
@@ -92,8 +90,8 @@ class HomePage extends StatelessWidget {
                 margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
                 padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
-                  color: _primary,
-                  borderRadius: BorderRadius.circular(18),
+                  color: AppColors.primary800,
+                  borderRadius: BorderRadius.circular(AppRadius.xl),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,7 +145,7 @@ class HomePage extends StatelessWidget {
                     const Text(
                       'Courses',
                       style: TextStyle(
-                        color: _dark,
+                        color: AppColors.gray900,
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                         letterSpacing: -0.2,
@@ -158,13 +156,13 @@ class HomePage extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: _bg,
-                        borderRadius: BorderRadius.circular(8),
+                        color: AppColors.gray50,
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
                       child: Text(
                         '${courses.length}',
                         style: const TextStyle(
-                          color: _sub,
+                          color: AppColors.gray500,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
@@ -183,11 +181,11 @@ class HomePage extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.school_outlined,
-                          size: 48, color: Color(0xFFD1D5DB)),
+                          size: 48, color: AppColors.gray300),
                       SizedBox(height: 12),
                       Text('No courses yet',
                           style: TextStyle(
-                              color: Color(0xFF9CA3AF), fontSize: 15)),
+                              color: AppColors.gray400, fontSize: 15)),
                     ],
                   ),
                 ),
@@ -256,9 +254,9 @@ class HomePage extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
               decoration: const BoxDecoration(
-                color: Color(0xFF1F3A70),
+                color: AppColors.primary800,
                 borderRadius: BorderRadius.only(
-                  topRight: Radius.circular(20),
+                  topRight: Radius.circular(AppRadius.xxl),
                 ),
               ),
               child: Column(
@@ -318,10 +316,7 @@ class HomePage extends StatelessWidget {
               },
             ),
 
-            Divider(
-                color: Colors.grey.withValues(alpha: 0.2),
-                indent: 20,
-                endIndent: 20),
+            Divider(color: AppColors.divider, indent: 20, endIndent: 20),
 
             _DrawerItem(
               icon: Icons.settings_outlined,
@@ -352,7 +347,7 @@ class HomePage extends StatelessWidget {
               child: Text(
                 'v1.0.0 · Made for Thapar University',
                 style: TextStyle(
-                  color: Colors.grey.withValues(alpha: 0.5),
+                  color: AppColors.textMuted,
                   fontSize: 11,
                 ),
               ),
@@ -364,6 +359,7 @@ class HomePage extends StatelessWidget {
   }
 
   void _showProfileSheet(BuildContext context) {
+    final profile = UserProfileService.instance;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -389,26 +385,44 @@ class HomePage extends StatelessWidget {
                 const SizedBox(height: 20),
 
                 // Avatar
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 36,
-                  backgroundColor: Color(0xFF1F3A70),
-                  child:
-                      Icon(Icons.person_rounded, color: Colors.white, size: 36),
+                  backgroundColor: AppColors.primary800,
+                  child: profile.isSignedIn
+                      ? Text(
+                          profile.displayName[0].toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 28,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        )
+                      : const Icon(Icons.person_rounded,
+                          color: Colors.white, size: 36),
                 ),
                 const SizedBox(height: 14),
-                const Text(
-                  'Student',
-                  style: TextStyle(
-                    color: Color(0xFF0B2E4A),
+                Text(
+                  profile.displayName,
+                  style: const TextStyle(
+                    color: AppColors.primary900,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'Thapar University',
-                  style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 13),
+                Text(
+                  profile.isSignedIn ? profile.email : 'Thapar University',
+                  style:
+                      const TextStyle(color: AppColors.gray400, fontSize: 13),
                 ),
+                if (profile.rollNumber.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    'Roll No: ${profile.rollNumber}',
+                    style:
+                        const TextStyle(color: AppColors.gray400, fontSize: 12),
+                  ),
+                ],
                 const SizedBox(height: 20),
 
                 // Stats row
@@ -416,19 +430,17 @@ class HomePage extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF5F7FA),
-                    borderRadius: BorderRadius.circular(14),
+                    color: AppColors.gray50,
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _buildStat('Courses', '${CourseData.courses.length}'),
-                      Container(
-                          width: 1, height: 28, color: const Color(0xFFE5E7EB)),
+                      Container(width: 1, height: 28, color: AppColors.border),
                       _buildStat('Topics',
                           '${CourseData.courses.fold<int>(0, (s, c) => s + c.topics.length)}'),
-                      Container(
-                          width: 1, height: 28, color: const Color(0xFFE5E7EB)),
+                      Container(width: 1, height: 28, color: AppColors.border),
                       _buildStat('Videos',
                           '${CourseData.courses.fold<int>(0, (s, c) => s + c.topics.fold<int>(0, (s2, t) => s2 + t.videos.length))}'),
                     ],
@@ -442,20 +454,10 @@ class HomePage extends StatelessWidget {
                   label: 'Edit Profile',
                   onTap: () {
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('Profile editing coming soon')),
-                    );
-                  },
-                ),
-                _ProfileOption(
-                  icon: Icons.notifications_outlined,
-                  label: 'Notifications',
-                  onTap: () {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('Notifications coming soon')),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const EditProfilePage()),
                     );
                   },
                 ),
@@ -463,7 +465,7 @@ class HomePage extends StatelessWidget {
                   icon: Icons.dark_mode_outlined,
                   label: 'Dark Mode',
                   trailing: const Text('Soon',
-                      style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 12)),
+                      style: TextStyle(color: AppColors.gray400, fontSize: 12)),
                   onTap: () {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -485,7 +487,7 @@ class HomePage extends StatelessWidget {
         Text(
           value,
           style: const TextStyle(
-            color: Color(0xFF1F3A70),
+            color: AppColors.primary800,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
@@ -493,7 +495,7 @@ class HomePage extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           label,
-          style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 11),
+          style: const TextStyle(color: AppColors.gray400, fontSize: 11),
         ),
       ],
     );
@@ -579,11 +581,11 @@ class _CourseCardState extends State<CourseCard> with TickerProviderStateMixin {
   void _handleTapCancel() => _animationController.reverse();
 
   static const _accents = [
-    Color(0xFF1F3A70),
-    Color(0xFF0891B2),
-    Color(0xFFDC2626),
-    Color(0xFF2563EB),
-    Color(0xFFB91C1C),
+    AppColors.primary800,
+    AppColors.primary500,
+    AppColors.accent600,
+    AppColors.primary700,
+    AppColors.error,
   ];
 
   static const _icons = [
@@ -613,8 +615,8 @@ class _CourseCardState extends State<CourseCard> with TickerProviderStateMixin {
               margin: const EdgeInsets.only(bottom: 14),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE5E7EB)),
+                borderRadius: BorderRadius.circular(AppRadius.xl),
+                border: Border.all(color: AppColors.border),
               ),
               child: IntrinsicHeight(
                 child: Row(
@@ -625,8 +627,8 @@ class _CourseCardState extends State<CourseCard> with TickerProviderStateMixin {
                       decoration: BoxDecoration(
                         color: accent,
                         borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(16),
-                          bottomLeft: Radius.circular(16),
+                          topLeft: Radius.circular(AppRadius.xl),
+                          bottomLeft: Radius.circular(AppRadius.xl),
                         ),
                       ),
                     ),
@@ -642,7 +644,8 @@ class _CourseCardState extends State<CourseCard> with TickerProviderStateMixin {
                               height: 48,
                               decoration: BoxDecoration(
                                 color: accent.withValues(alpha: 0.10),
-                                borderRadius: BorderRadius.circular(14),
+                                borderRadius:
+                                    BorderRadius.circular(AppRadius.lg),
                               ),
                               child: Icon(icon, color: accent, size: 24),
                             ),
@@ -658,7 +661,8 @@ class _CourseCardState extends State<CourseCard> with TickerProviderStateMixin {
                                         horizontal: 8, vertical: 3),
                                     decoration: BoxDecoration(
                                       color: accent.withValues(alpha: 0.08),
-                                      borderRadius: BorderRadius.circular(6),
+                                      borderRadius:
+                                          BorderRadius.circular(AppRadius.sm),
                                     ),
                                     child: Text(
                                       widget.courseId,
@@ -674,7 +678,7 @@ class _CourseCardState extends State<CourseCard> with TickerProviderStateMixin {
                                   Text(
                                     widget.title,
                                     style: const TextStyle(
-                                      color: Color(0xFF0B2E4A),
+                                      color: AppColors.primary900,
                                       fontSize: 17,
                                       fontWeight: FontWeight.w700,
                                       letterSpacing: -0.2,
@@ -686,7 +690,7 @@ class _CourseCardState extends State<CourseCard> with TickerProviderStateMixin {
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
-                                      color: Color(0xFF9CA3AF),
+                                      color: AppColors.gray400,
                                       fontSize: 13,
                                       height: 1.3,
                                     ),
@@ -698,14 +702,14 @@ class _CourseCardState extends State<CourseCard> with TickerProviderStateMixin {
                                         icon: Icons.topic_rounded,
                                         label:
                                             '${widget.topicCount} ${widget.topicCount == 1 ? 'topic' : 'topics'}',
-                                        color: const Color(0xFF1D4ED8),
+                                        color: AppColors.primary700,
                                       ),
                                       const SizedBox(width: 8),
                                       _InfoPill(
                                         icon: Icons.play_circle_outline_rounded,
                                         label:
                                             '${widget.videoCount} ${widget.videoCount == 1 ? 'video' : 'videos'}',
-                                        color: const Color(0xFF0891B2),
+                                        color: AppColors.primary500,
                                       ),
                                     ],
                                   ),
@@ -716,7 +720,7 @@ class _CourseCardState extends State<CourseCard> with TickerProviderStateMixin {
                             Padding(
                               padding: const EdgeInsets.only(top: 10),
                               child: Icon(Icons.chevron_right_rounded,
-                                  color: const Color(0xFFD1D5DB), size: 24),
+                                  color: AppColors.gray300, size: 24),
                             ),
                           ],
                         ),
@@ -752,20 +756,21 @@ class _DrawerItem extends StatelessWidget {
     return ListTile(
       leading: Icon(
         icon,
-        color: isActive ? const Color(0xFF1F3A70) : const Color(0xFF6B7280),
+        color: isActive ? AppColors.primary800 : AppColors.gray500,
         size: 22,
       ),
       title: Text(
         label,
         style: TextStyle(
-          color: isActive ? const Color(0xFF1F3A70) : const Color(0xFF374151),
+          color: isActive ? AppColors.primary800 : AppColors.gray700,
           fontSize: 14,
           fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
         ),
       ),
       selected: isActive,
-      selectedTileColor: const Color(0xFF1F3A70).withValues(alpha: 0.06),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      selectedTileColor: AppColors.primary800.withValues(alpha: 0.06),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md)),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20),
       dense: true,
       visualDensity: const VisualDensity(vertical: 0.5),
@@ -794,18 +799,18 @@ class _ProfileOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(icon, color: const Color(0xFF6B7280), size: 20),
+      leading: Icon(icon, color: AppColors.gray500, size: 20),
       title: Text(
         label,
         style: const TextStyle(
-          color: Color(0xFF374151),
+          color: AppColors.gray700,
           fontSize: 14,
           fontWeight: FontWeight.w500,
         ),
       ),
       trailing: trailing ??
           const Icon(Icons.chevron_right_rounded,
-              color: Color(0xFFD1D5DB), size: 20),
+              color: AppColors.gray300, size: 20),
       contentPadding: EdgeInsets.zero,
       dense: true,
       visualDensity: const VisualDensity(vertical: -1),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:edutube_shorts/utils/video_cache_manager.dart';
+import 'package:edutube_shorts/utils/design_tokens.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -18,9 +19,9 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8),
+      backgroundColor: AppColors.scaffoldBg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1F3A70),
+        backgroundColor: AppColors.primary800,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
@@ -39,7 +40,7 @@ class _SettingsPageState extends State<SettingsPage> {
             subtitle: 'Automatically play next video',
             trailing: Switch.adaptive(
               value: _autoplay,
-              activeColor: const Color(0xFF1F3A70),
+              activeColor: AppColors.primary800,
               onChanged: (v) {
                 HapticFeedback.selectionClick();
                 setState(() => _autoplay = v);
@@ -80,7 +81,7 @@ class _SettingsPageState extends State<SettingsPage> {
             subtitle: 'Only stream videos on Wi-Fi',
             trailing: Switch.adaptive(
               value: _wifiOnly,
-              activeColor: const Color(0xFF1F3A70),
+              activeColor: AppColors.primary800,
               onChanged: (v) {
                 HapticFeedback.selectionClick();
                 setState(() => _wifiOnly = v);
@@ -98,7 +99,7 @@ class _SettingsPageState extends State<SettingsPage> {
             subtitle: 'Get notified about new content',
             trailing: Switch.adaptive(
               value: _notifications,
-              activeColor: const Color(0xFF1F3A70),
+              activeColor: AppColors.primary800,
               onChanged: (v) {
                 HapticFeedback.selectionClick();
                 setState(() => _notifications = v);
@@ -131,7 +132,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, true),
                       child: const Text('Clear',
-                          style: TextStyle(color: Color(0xFFDC2626))),
+                          style: TextStyle(color: AppColors.error)),
                     ),
                   ],
                 ),
@@ -178,7 +179,7 @@ class _SectionHeader extends StatelessWidget {
       child: Text(
         label.toUpperCase(),
         style: const TextStyle(
-          color: Color(0xFF1F3A70),
+          color: AppColors.primary800,
           fontSize: 12,
           fontWeight: FontWeight.w700,
           letterSpacing: 1.0,
@@ -209,41 +210,36 @@ class _SettingsTile extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        boxShadow: AppShadows.card,
       ),
       child: ListTile(
         leading: Container(
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: const Color(0xFF1F3A70).withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(10),
+            color: AppColors.primary800.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
-          child: Icon(icon, color: const Color(0xFF1F3A70), size: 20),
+          child: Icon(icon, color: AppColors.primary800, size: 20),
         ),
         title: Text(
           title,
           style: const TextStyle(
-            color: Color(0xFF0B2E4A),
+            color: AppColors.primary900,
             fontSize: 15,
             fontWeight: FontWeight.w600,
           ),
         ),
         subtitle: Text(
           subtitle,
-          style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 12),
+          style: const TextStyle(color: AppColors.gray400, fontSize: 12),
         ),
         trailing: trailing,
         onTap: onTap,
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.lg)),
       ),
     );
   }

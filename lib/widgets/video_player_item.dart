@@ -51,7 +51,8 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
         debugPrint('📦 Cache hit: ${widget.video.id}');
       } else {
         // Not cached yet — start streaming immediately.
-        final uri = VideoSourceResolver.playbackUriCandidates(widget.video.url).first;
+        final uri =
+            VideoSourceResolver.playbackUriCandidates(widget.video.url).first;
         c = VideoPlayerController.networkUrl(
           uri,
           httpHeaders: VideoSourceResolver.playbackHttpHeaders,
@@ -145,7 +146,6 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                 ),
               ),
             ),
-
             if (_showPauseIcon)
               Center(
                 child: TweenAnimationBuilder<double>(
@@ -170,7 +170,6 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                   ),
                 ),
               ),
-
             ValueListenableBuilder(
               valueListenable: _controller!,
               builder: (context, value, child) {
@@ -181,7 +180,8 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                       height: 36,
                       child: CircularProgressIndicator(
                         strokeWidth: 2.5,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(Colors.white70),
                       ),
                     ),
                   );
@@ -189,7 +189,6 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                 return const SizedBox.shrink();
               },
             ),
-
             Positioned(
               bottom: 20,
               left: 16,
@@ -227,7 +226,8 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.cloud_off_rounded, color: Colors.white38, size: 48),
+              const Icon(Icons.cloud_off_rounded,
+                  color: Colors.white38, size: 48),
               const SizedBox(height: 16),
               const Text(
                 'Could not load video',
@@ -255,7 +255,8 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.white70,
                   side: const BorderSide(color: Colors.white24),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 ),
               ),
             ],
@@ -335,10 +336,10 @@ class _VideoProgressBarState extends State<VideoProgressBar> {
               trackHeight: 3,
               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
               overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
-              activeTrackColor: Colors.red,
+              activeTrackColor: const Color(0xFFB52827),
               inactiveTrackColor: Colors.white.withValues(alpha: 0.25),
-              thumbColor: Colors.red,
-              overlayColor: Colors.red.withValues(alpha: 0.2),
+              thumbColor: const Color(0xFFB52827),
+              overlayColor: const Color(0xFFB52827).withValues(alpha: 0.2),
             ),
             child: Slider(
               value: progress,
