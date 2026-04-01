@@ -525,8 +525,7 @@ class CourseCard extends StatefulWidget {
   State<CourseCard> createState() => _CourseCardState();
 }
 
-class _CourseCardState extends State<CourseCard>
-    with TickerProviderStateMixin {
+class _CourseCardState extends State<CourseCard> with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late AnimationController _entranceController;
@@ -612,122 +611,122 @@ class _CourseCardState extends State<CourseCard>
             scale: _scaleAnimation,
             child: Container(
               margin: const EdgeInsets.only(bottom: 14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE5E7EB)),
-          ),
-          child: IntrinsicHeight(
-            child: Row(
-              children: [
-                // Solid accent left bar
-                Container(
-                  width: 4,
-                  decoration: BoxDecoration(
-                    color: accent,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(16),
-                      bottomLeft: Radius.circular(16),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(14, 16, 14, 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE5E7EB)),
+              ),
+              child: IntrinsicHeight(
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Course icon
+                    // Solid accent left bar
                     Container(
-                      width: 48,
-                      height: 48,
+                      width: 4,
                       decoration: BoxDecoration(
-                        color: accent.withValues(alpha: 0.10),
-                        borderRadius: BorderRadius.circular(14),
+                        color: accent,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(16),
+                          bottomLeft: Radius.circular(16),
+                        ),
                       ),
-                      child: Icon(icon, color: accent, size: 24),
                     ),
-                    const SizedBox(width: 14),
-                    // Details
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Course code badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: accent.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(6),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 16, 14, 16),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Course icon
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: accent.withValues(alpha: 0.10),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Icon(icon, color: accent, size: 24),
                             ),
-                            child: Text(
-                              widget.courseId,
-                              style: TextStyle(
-                                color: accent,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.5,
+                            const SizedBox(width: 14),
+                            // Details
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Course code badge
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: accent.withValues(alpha: 0.08),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      widget.courseId,
+                                      style: TextStyle(
+                                        color: accent,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    widget.title,
+                                    style: const TextStyle(
+                                      color: Color(0xFF0B2E4A),
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: -0.2,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    widget.description,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Color(0xFF9CA3AF),
+                                      fontSize: 13,
+                                      height: 1.3,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 14),
+                                  Row(
+                                    children: [
+                                      _InfoPill(
+                                        icon: Icons.topic_rounded,
+                                        label:
+                                            '${widget.topicCount} ${widget.topicCount == 1 ? 'topic' : 'topics'}',
+                                        color: const Color(0xFF1D4ED8),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      _InfoPill(
+                                        icon: Icons.play_circle_outline_rounded,
+                                        label:
+                                            '${widget.videoCount} ${widget.videoCount == 1 ? 'video' : 'videos'}',
+                                        color: const Color(0xFF0891B2),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            widget.title,
-                            style: const TextStyle(
-                              color: Color(0xFF0B2E4A),
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: -0.2,
+                            // Arrow
+                            Padding(
+                              padding: const EdgeInsets.only(top: 10),
+                              child: Icon(Icons.chevron_right_rounded,
+                                  color: const Color(0xFFD1D5DB), size: 24),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            widget.description,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Color(0xFF9CA3AF),
-                              fontSize: 13,
-                              height: 1.3,
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                          Row(
-                            children: [
-                              _InfoPill(
-                                icon: Icons.topic_rounded,
-                                label:
-                                    '${widget.topicCount} ${widget.topicCount == 1 ? 'topic' : 'topics'}',
-                                color: const Color(0xFF1D4ED8),
-                              ),
-                              const SizedBox(width: 8),
-                              _InfoPill(
-                                icon: Icons.play_circle_outline_rounded,
-                                label:
-                                    '${widget.videoCount} ${widget.videoCount == 1 ? 'video' : 'videos'}',
-                                color: const Color(0xFF0891B2),
-                              ),
-                            ],
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    // Arrow
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10),
-                      child: Icon(Icons.chevron_right_rounded,
-                          color: const Color(0xFFD1D5DB), size: 24),
                     ),
                   ],
                 ),
               ),
             ),
-          ],
-        ),
-      ),
           ),
-        ),
         ),
       ),
     );
