@@ -20,8 +20,8 @@ class AuthService {
     final savedEmail = await LocalStorage.getString(_userEmailKey);
     final savedPassword = await LocalStorage.getString(_userPasswordKey);
 
-    final isValid = savedEmail == email.trim().toLowerCase() &&
-        savedPassword == password;
+    final isValid =
+        savedEmail == email.trim().toLowerCase() && savedPassword == password;
     if (isValid) {
       await LocalStorage.setBool(_isLoggedInKey, true);
     }

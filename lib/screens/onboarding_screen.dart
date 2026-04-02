@@ -29,7 +29,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _OnboardingItem(
       icon: Icons.swipe_left_rounded,
       title: 'Swipe horizontally for topics',
-      subtitle: 'Go left and right to switch topics without leaving the player.',
+      subtitle:
+          'Go left and right to switch topics without leaving the player.',
     ),
   ];
 
@@ -65,7 +66,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: PageView.builder(
                   controller: _pageController,
                   itemCount: _items.length,
-                  onPageChanged: (index) => setState(() => _currentPage = index),
+                  onPageChanged: (index) =>
+                      setState(() => _currentPage = index),
                   itemBuilder: (context, index) {
                     final item = _items[index];
                     return AnimatedContainer(
@@ -85,7 +87,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             width: 84,
                             height: 84,
                             decoration: BoxDecoration(
-                              color: AppColors.primary800.withValues(alpha: 0.1),
+                              color:
+                                  AppColors.primary800.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(24),
                             ),
                             child: Icon(item.icon,
@@ -150,8 +153,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
                       : const Text('Get Started'),
