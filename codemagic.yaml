@@ -1,0 +1,11 @@
+workflows:
+  ios-release:
+    name: iOS Release
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.your.app
+    scripts:
+      - flutter build ipa --release
+    artifacts:
+      - build/ios/ipa/*.ipa
