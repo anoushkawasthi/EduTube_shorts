@@ -79,53 +79,34 @@ class CourseData {
     ),
     Course(
       id: 'UCS102',
-      title: 'Data Structures',
-      description: 'Deep dive into fundamental data structures and algorithms',
+      title: 'Motor Controller Pinout',
+      description:
+          'Comprehensive guide to motor controller pinout configurations and applications',
       topics: [
         Topic(
-          id: 'DS_T1',
-          title: 'Stacks & Queues',
+          id: 'MC_T1',
+          title: 'Motor Controller Overview',
           videos: [
             Video(
-              id: 'DS_V1',
-              title: 'Stack Implementation',
-              url: '$_r2/topic1/VID_20260401_161916_124.mp4',
-              duration: const Duration(minutes: 10),
-              description: 'LIFO data structure essentials',
+              id: 'MC_V1',
+              title: 'Introduction to Motor Controllers',
+              url: '$_r2/temp/amanpreet1.mp4',
+              duration: const Duration(minutes: 0),
+              description: 'Motor controller fundamentals and pinout basics',
             ),
             Video(
-              id: 'DS_V2',
-              title: 'Queue Variants',
-              url: '$_r2/topic1/VID_20260401_161028_848.mp4',
-              duration: const Duration(minutes: 11, seconds: 20),
-              description: 'FIFO, circular, and deques',
+              id: 'MC_V2',
+              title: 'Pinout Configuration',
+              url: '$_r2/temp/amanpreet2.mp4',
+              duration: const Duration(minutes: 0),
+              description: 'Detailed pinout and connection setup',
             ),
             Video(
-              id: 'DS_V3',
-              title: 'Applications of Stacks',
-              url: '$_r2/topic1/VID_20260401_161200_700.mp4',
-              duration: const Duration(minutes: 12, seconds: 40),
-              description: 'Practical use cases and problems',
-            ),
-          ],
-        ),
-        Topic(
-          id: 'DS_T2',
-          title: 'Trees & Graphs',
-          videos: [
-            Video(
-              id: 'DS_V4',
-              title: 'Binary Trees Fundamentals',
-              url: '$_r2/topic2/VID_20260401_161519_499.mp4',
-              duration: const Duration(minutes: 14, seconds: 15),
-              description: 'Tree structure and traversal',
-            ),
-            Video(
-              id: 'DS_V5',
-              title: 'Balanced Trees (AVL)',
-              url: '$_r2/topic2/VID_20260401_161135_454.mp4',
-              duration: const Duration(minutes: 13),
-              description: 'Maintaining O(log n) operations',
+              id: 'MC_V3',
+              title: 'Advanced Applications',
+              url: '$_r2/temp/amanpreet3.mp4',
+              duration: const Duration(minutes: 0),
+              description: 'Advanced motor controller applications',
             ),
           ],
         ),
@@ -133,6 +114,55 @@ class CourseData {
     ),
     Course(
       id: 'UCS103',
+      title: 'BCI',
+      description:
+          'Exploration of brain computer interface technology and principles',
+      topics: [
+        Topic(
+          id: 'BCI_T1',
+          title: 'BCI Fundamentals',
+          videos: [
+            Video(
+              id: 'BCI_V1',
+              title: 'Introduction to BCI',
+              url: '$_r2/temp/seema1.mp4',
+              duration: const Duration(minutes: 0),
+              description:
+                  'Basic concepts and principles of brain computer interfaces',
+            ),
+            Video(
+              id: 'BCI_V2',
+              title: 'Signal Processing',
+              url: '$_r2/temp/seema2.mp4',
+              duration: const Duration(minutes: 0),
+              description: 'EEG signal processing and analysis techniques',
+            ),
+          ],
+        ),
+        Topic(
+          id: 'BCI_T2',
+          title: 'BCI Applications',
+          videos: [
+            Video(
+              id: 'BCI_V3',
+              title: 'Practical Applications',
+              url: '$_r2/temp/seema3.mp4',
+              duration: const Duration(minutes: 0),
+              description: 'Real-world applications and use cases',
+            ),
+            Video(
+              id: 'BCI_V4',
+              title: 'Advanced Topics',
+              url: '$_r2/temp/seema4.mp4',
+              duration: const Duration(minutes: 0),
+              description: 'Advanced BCI research and future directions',
+            ),
+          ],
+        ),
+      ],
+    ),
+    Course(
+      id: 'UCS104',
       title: 'Algorithms',
       description: 'Algorithm design, analysis, and optimization',
       topics: [

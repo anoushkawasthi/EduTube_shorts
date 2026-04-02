@@ -375,135 +375,143 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
           ),
         ),
 
-        // Bottom-Left: Video info + topic badge
-        Positioned(
-          bottom: 56,
-          left: 14,
-          right: 76,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Video title
-              Text(
-                video.title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  shadows: [Shadow(blurRadius: 4, color: Colors.black54)],
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              if (video.description.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(
-                  video.description,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.75),
-                    fontSize: 12,
-                    shadows: const [
-                      Shadow(blurRadius: 4, color: Colors.black54)
-                    ],
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-              const SizedBox(height: 8),
-              // Topic badge
-              GestureDetector(
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  _navigateToTopicsPage();
-                },
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
-                    border:
-                        Border.all(color: Colors.white.withValues(alpha: 0.2)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.playlist_play_rounded,
-                          color: Colors.white, size: 16),
-                      const SizedBox(width: 6),
-                      Flexible(
-                        child: Text(
-                          topic.title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '${videoIndex + 1}/${topic.videos.length}',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.6),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // Right side: Action buttons
-        Positioned(
-          right: 12,
-          bottom: 80,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Like button
-              _buildActionButton(
-                icon: isLiked
-                    ? Icons.favorite_rounded
-                    : Icons.favorite_border_rounded,
-                color: isLiked ? AppColors.accent600 : Colors.white,
-                onTap: () => _toggleLike(video.id),
-              ),
-              const SizedBox(height: 18),
-              // Info button
-              _buildActionButton(
-                icon: Icons.info_outline_rounded,
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  _showTopicMetadataSheet();
-                },
-              ),
-              const SizedBox(height: 18),
-              // More button
-              _buildActionButton(
-                icon: Icons.more_horiz_rounded,
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  _showMoreOptionsSheet();
-                },
-              ),
-            ],
-          ),
-        ),
-
-        // Bottom spacer
+        // Bottom overlay: Video info + Action buttons (auto-fit)
         Positioned(
           bottom: 0,
           left: 0,
           right: 0,
-          child: Container(height: 36, color: Colors.black),
+          child: SafeArea(
+            top: false,
+            minimum: const EdgeInsets.only(bottom: 8),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 12, 0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  // Left: Video info + topic badge
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 14),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Video title
+                          Text(
+                            video.title,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              shadows: [
+                                Shadow(blurRadius: 4, color: Colors.black54)
+                              ],
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (video.description.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              video.description,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.75),
+                                fontSize: 12,
+                                shadows: const [
+                                  Shadow(blurRadius: 4, color: Colors.black54)
+                                ],
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                          const SizedBox(height: 8),
+                          // Topic badge
+                          GestureDetector(
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              _navigateToTopicsPage();
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.2)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.playlist_play_rounded,
+                                      color: Colors.white, size: 16),
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(
+                                      topic.title,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    '${videoIndex + 1}/${topic.videos.length}',
+                                    style: TextStyle(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.6),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Right: Action buttons
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Like button
+                      _buildActionButton(
+                        icon: isLiked
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
+                        color: isLiked ? AppColors.accent600 : Colors.white,
+                        onTap: () => _toggleLike(video.id),
+                      ),
+                      const SizedBox(height: 18),
+                      // Info button
+                      _buildActionButton(
+                        icon: Icons.info_outline_rounded,
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          _showTopicMetadataSheet();
+                        },
+                      ),
+                      const SizedBox(height: 18),
+                      // More button
+                      _buildActionButton(
+                        icon: Icons.more_horiz_rounded,
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          _showMoreOptionsSheet();
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ],
     );

@@ -7,6 +7,8 @@ import 'package:edutube_shorts/pages/liked_videos_page.dart';
 import 'package:edutube_shorts/pages/settings_page.dart';
 import 'package:edutube_shorts/pages/help_feedback_page.dart';
 import 'package:edutube_shorts/pages/edit_profile_page.dart';
+import 'package:edutube_shorts/screens/auth_gate.dart';
+import 'package:edutube_shorts/services/auth_service.dart';
 import 'package:edutube_shorts/services/theme_service.dart';
 import 'package:edutube_shorts/services/user_profile_service.dart';
 import 'package:edutube_shorts/utils/design_tokens.dart';
@@ -345,6 +347,20 @@ class HomePage extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                         builder: (_) => const HelpFeedbackPage()));
+              },
+            ),
+            _DrawerItem(
+              icon: Icons.logout_rounded,
+              label: 'Logout',
+              onTap: () async {
+                Navigator.pop(context);
+                await AuthService.instance.logout();
+                await UserProfileService.instance.signOut();
+                if (!context.mounted) return;
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const AuthGate()),
+                  (route) => false,
+                );
               },
             ),
 
@@ -705,11 +721,13 @@ class _CourseCardState extends State<CourseCard> with TickerProviderStateMixin {
                                       fontWeight: FontWeight.w700,
                                       letterSpacing: -0.2,
                                     ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     widget.description,
-                                    maxLines: 2,
+                                    maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       color: context.appColors.textMuted,
@@ -717,8 +735,10 @@ class _CourseCardState extends State<CourseCard> with TickerProviderStateMixin {
                                       height: 1.3,
                                     ),
                                   ),
-                                  const SizedBox(height: 14),
-                                  Row(
+                                  const SizedBox(height: 10),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 6,
                                     children: [
                                       _InfoPill(
                                         icon: Icons.topic_rounded,
@@ -726,7 +746,6 @@ class _CourseCardState extends State<CourseCard> with TickerProviderStateMixin {
                                             '${widget.topicCount} ${widget.topicCount == 1 ? 'topic' : 'topics'}',
                                         color: AppColors.primary700,
                                       ),
-                                      const SizedBox(width: 8),
                                       _InfoPill(
                                         icon: Icons.play_circle_outline_rounded,
                                         label:

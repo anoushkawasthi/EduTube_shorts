@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:edutube_shorts/pages/home_page.dart';
+import 'package:edutube_shorts/screens/auth_gate.dart';
 import 'package:edutube_shorts/services/theme_service.dart';
 import 'package:edutube_shorts/services/user_profile_service.dart';
 import 'package:edutube_shorts/services/video_state_service.dart';
@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
           themeMode: ThemeService.instance.themeMode,
           theme: _buildTheme(Brightness.light, _lightText),
           darkTheme: _buildTheme(Brightness.dark, _darkText),
-          home: const HomePage(),
+          home: const AppEntryScreen(),
         );
       },
     );
