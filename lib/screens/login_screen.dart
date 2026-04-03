@@ -62,15 +62,25 @@ class _LoginScreenState extends State<LoginScreen> {
           return;
         }
 
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const HomePage()),
-          (route) => false,
-        );
+        final profileComplete = await AuthService.instance.isProfileComplete();
+        if (!mounted) return;
+
+        if (profileComplete) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const HomePage()),
+            (route) => false,
+          );
+        } else {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const ProfileSetupScreen()),
+            (route) => false,
+          );
+        }
       } else {
         await AuthService.instance.signUp(email, password);
         if (!mounted) return;
 
-        Navigator.of(context).push(
+        Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const ProfileSetupScreen()),
         );
       }

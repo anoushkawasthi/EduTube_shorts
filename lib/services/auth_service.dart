@@ -13,6 +13,7 @@ class AuthService {
   Future<void> signUp(String email, String password) async {
     await LocalStorage.setString(_userEmailKey, email.trim().toLowerCase());
     await LocalStorage.setString(_userPasswordKey, password);
+    await LocalStorage.setString(_userNameKey, '');
     await LocalStorage.setBool(_isLoggedInKey, false);
   }
 
@@ -55,5 +56,10 @@ class AuthService {
 
   Future<String> getUserName() async {
     return LocalStorage.getString(_userNameKey);
+  }
+
+  Future<bool> isProfileComplete() async {
+    final name = await LocalStorage.getString(_userNameKey);
+    return name.trim().isNotEmpty;
   }
 }

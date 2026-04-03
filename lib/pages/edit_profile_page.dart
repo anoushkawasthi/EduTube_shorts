@@ -16,6 +16,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   late TextEditingController _nameCtrl;
   late TextEditingController _rollCtrl;
+  late TextEditingController _branchCtrl;
+  late TextEditingController _yearCtrl;
+  late TextEditingController _phoneCtrl;
   late TextEditingController _emailCtrl;
   bool _saving = false;
 
@@ -24,6 +27,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
     super.initState();
     _nameCtrl = TextEditingController(text: _profile.name);
     _rollCtrl = TextEditingController(text: _profile.rollNumber);
+    _branchCtrl = TextEditingController(text: _profile.branch);
+    _yearCtrl = TextEditingController(text: _profile.year);
+    _phoneCtrl = TextEditingController(text: _profile.phoneNumber);
     _emailCtrl = TextEditingController(text: _profile.email);
   }
 
@@ -31,6 +37,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void dispose() {
     _nameCtrl.dispose();
     _rollCtrl.dispose();
+    _branchCtrl.dispose();
+    _yearCtrl.dispose();
+    _phoneCtrl.dispose();
     _emailCtrl.dispose();
     super.dispose();
   }
@@ -56,6 +65,32 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return null;
   }
 
+  String? _validateRequired(String? value, String field) {
+    if (value == null || value.trim().isEmpty) {
+      return '$field is required';
+    }
+    return null;
+  }
+
+  String? _validateYear(String? value) {
+    final yearText = (value ?? '').trim();
+    if (yearText.isEmpty) return 'Year is required';
+    final year = int.tryParse(yearText);
+    if (year == null || year < 1 || year > 5) {
+      return 'Enter a valid year (1-5)';
+    }
+    return null;
+  }
+
+  String? _validatePhone(String? value) {
+    final phone = (value ?? '').trim();
+    if (phone.isEmpty) return 'Phone number is required';
+    if (!RegExp(r'^\d{10}$').hasMatch(phone)) {
+      return 'Enter a valid 10-digit number';
+    }
+    return null;
+  }
+
   String? _validateName(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Name is required';
@@ -69,6 +104,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
     await _profile.updateProfile(
       name: _nameCtrl.text,
       rollNumber: _rollCtrl.text,
+      branch: _branchCtrl.text,
+      year: _yearCtrl.text,
+      phoneNumber: _phoneCtrl.text,
       email: _emailCtrl.text.toLowerCase(),
     );
     if (mounted) {
@@ -176,6 +214,50 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 decoration: _inputDecoration(
                   hint: 'e.g. 102203611',
                   icon: Icons.badge_outlined,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Branch
+              _buildLabel('Branch'),
+              const SizedBox(height: 6),
+              TextFormField(
+                controller: _branchCtrl,
+                validator: (value) => _validateRequired(value, 'Branch'),
+                textCapitalization: TextCapitalization.words,
+                decoration: _inputDecoration(
+                  hint: 'e.g. Computer Engineering',
+                  icon: Icons.account_tree_outlined,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Year
+              _buildLabel('Year'),
+              const SizedBox(height: 6),
+              TextFormField(
+                controller: _yearCtrl,
+                validator: _validateYear,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                decoration: _inputDecoration(
+                  hint: 'e.g. 3',
+                  icon: Icons.school_outlined,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Phone
+              _buildLabel('Phone Number'),
+              const SizedBox(height: 6),
+              TextFormField(
+                controller: _phoneCtrl,
+                validator: _validatePhone,
+                keyboardType: TextInputType.phone,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                decoration: _inputDecoration(
+                  hint: 'e.g. 9876543210',
+                  icon: Icons.phone_outlined,
                 ),
               ),
               const SizedBox(height: 20),

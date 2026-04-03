@@ -420,28 +420,29 @@ class HomePage extends StatelessWidget {
                           color: Colors.white, size: 36),
                 ),
                 const SizedBox(height: 14),
-                Text(
-                  profile.displayName,
-                  style: TextStyle(
-                    color: context.appColors.heading,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
+                InkWell(
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const EditProfilePage()),
+                    );
+                  },
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    child: Text(
+                      profile.displayName,
+                      style: TextStyle(
+                        color: context.appColors.heading,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  profile.isSignedIn ? profile.email : 'Thapar University',
-                  style: TextStyle(
-                      color: context.appColors.textMuted, fontSize: 13),
-                ),
-                if (profile.rollNumber.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    'Roll No: ${profile.rollNumber}',
-                    style: TextStyle(
-                        color: context.appColors.textMuted, fontSize: 12),
-                  ),
-                ],
                 const SizedBox(height: 20),
 
                 // Stats row

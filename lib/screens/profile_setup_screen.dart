@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:edutube_shorts/pages/home_page.dart';
 import 'package:edutube_shorts/services/auth_service.dart';
 import 'package:edutube_shorts/services/user_profile_service.dart';
@@ -14,11 +15,19 @@ class ProfileSetupScreen extends StatefulWidget {
 class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _rollController = TextEditingController();
+  final _branchController = TextEditingController();
+  final _yearController = TextEditingController();
+  final _phoneController = TextEditingController();
   bool _isLoading = false;
 
   @override
   void dispose() {
     _nameController.dispose();
+    _rollController.dispose();
+    _branchController.dispose();
+    _yearController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -29,18 +38,50 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     return null;
   }
 
+  String? _validateRequired(String? value, String field) {
+    final text = (value ?? '').trim();
+    if (text.isEmpty) return '$field is required';
+    return null;
+  }
+
+  String? _validateYear(String? value) {
+    final yearText = (value ?? '').trim();
+    if (yearText.isEmpty) return 'Year is required';
+    final year = int.tryParse(yearText);
+    if (year == null || year < 1 || year > 5) {
+      return 'Enter a valid year (1-5)';
+    }
+    return null;
+  }
+
+  String? _validatePhone(String? value) {
+    final phone = (value ?? '').trim();
+    if (phone.isEmpty) return 'Phone number is required';
+    if (!RegExp(r'^\d{10}$').hasMatch(phone)) {
+      return 'Enter a valid 10-digit number';
+    }
+    return null;
+  }
+
   Future<void> _submitProfile() async {
     if (!_formKey.currentState!.validate() || _isLoading) return;
     setState(() => _isLoading = true);
 
     final name = _nameController.text.trim();
+    final rollNumber = _rollController.text.trim();
+    final branch = _branchController.text.trim();
+    final year = _yearController.text.trim();
+    final phone = _phoneController.text.trim();
     final email = await AuthService.instance.getUserEmail();
 
     try {
       await AuthService.instance.completeProfile(name);
       await UserProfileService.instance.updateProfile(
         name: name,
-        rollNumber: '',
+        rollNumber: rollNumber,
+        branch: branch,
+        year: year,
+        phoneNumber: phone,
         email: email,
       );
 
@@ -96,7 +137,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'Add your name to personalize your learning dashboard.',
+                        'Complete your student details to continue.',
                         style: TextStyle(color: colors.textMuted, fontSize: 13),
                       ),
                       const SizedBox(height: 20),
@@ -107,6 +148,53 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         decoration: const InputDecoration(
                           labelText: 'Full Name',
                           prefixIcon: Icon(Icons.person_outline_rounded),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      TextFormField(
+                        controller: _rollController,
+                        validator: (value) =>
+                            _validateRequired(value, 'Roll number'),
+                        textCapitalization: TextCapitalization.characters,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                              RegExp(r'[a-zA-Z0-9]')),
+                        ],
+                        decoration: const InputDecoration(
+                          labelText: 'Roll Number',
+                          prefixIcon: Icon(Icons.badge_outlined),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      TextFormField(
+                        controller: _branchController,
+                        validator: (value) => _validateRequired(value, 'Branch'),
+                        textCapitalization: TextCapitalization.words,
+                        decoration: const InputDecoration(
+                          labelText: 'Branch',
+                          prefixIcon: Icon(Icons.account_tree_outlined),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      TextFormField(
+                        controller: _yearController,
+                        validator: _validateYear,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        decoration: const InputDecoration(
+                          labelText: 'Year',
+                          prefixIcon: Icon(Icons.school_outlined),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      TextFormField(
+                        controller: _phoneController,
+                        validator: _validatePhone,
+                        keyboardType: TextInputType.phone,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        decoration: const InputDecoration(
+                          labelText: 'Phone Number',
+                          prefixIcon: Icon(Icons.phone_outlined),
                         ),
                       ),
                       const SizedBox(height: 24),
