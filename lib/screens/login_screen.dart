@@ -3,6 +3,7 @@ import 'package:edutube_shorts/pages/home_page.dart';
 import 'package:edutube_shorts/screens/profile_setup_screen.dart';
 import 'package:edutube_shorts/services/auth_service.dart';
 import 'package:edutube_shorts/utils/design_tokens.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -104,6 +105,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Center(
+                        child: SvgPicture.asset(
+                          'lib/main-site-logo.svg',
+                          height: 42,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
                       Text(
                         _isLoginMode ? 'Welcome back' : 'Create account',
                         style: TextStyle(
