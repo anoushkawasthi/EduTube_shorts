@@ -276,8 +276,6 @@ class HomePage extends StatelessWidget {
                   SvgPicture.asset(
                     'lib/main-site-logo.svg',
                     height: 36,
-                    colorFilter:
-                        const ColorFilter.mode(Colors.white, BlendMode.srcIn),
                   ),
                   const SizedBox(height: 12),
                   const Text(
