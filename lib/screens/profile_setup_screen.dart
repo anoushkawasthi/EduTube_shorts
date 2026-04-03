@@ -168,7 +168,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       const SizedBox(height: 14),
                       TextFormField(
                         controller: _branchController,
-                        validator: (value) => _validateRequired(value, 'Branch'),
+                        validator: (value) =>
+                            _validateRequired(value, 'Branch'),
                         textCapitalization: TextCapitalization.words,
                         decoration: const InputDecoration(
                           labelText: 'Branch',
@@ -180,7 +181,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         controller: _yearController,
                         validator: _validateYear,
                         keyboardType: TextInputType.number,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly
+                        ],
                         decoration: const InputDecoration(
                           labelText: 'Year',
                           prefixIcon: Icon(Icons.school_outlined),
@@ -191,7 +194,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         controller: _phoneController,
                         validator: _validatePhone,
                         keyboardType: TextInputType.phone,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly
+                        ],
                         decoration: const InputDecoration(
                           labelText: 'Phone Number',
                           prefixIcon: Icon(Icons.phone_outlined),
